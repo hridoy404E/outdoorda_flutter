@@ -85,6 +85,21 @@ class AdminJobApiService {
         .where((e) => e.trim().isNotEmpty)
         .toList();
 
+    final addressLine1 = _firstNotEmpty([json['address_line_1']?.toString()]);
+    final addressLine2 = _firstNotEmpty([json['address_line_2']?.toString()]);
+    final city = _firstNotEmpty([json['city']?.toString()]);
+    final state = _firstNotEmpty([json['state']?.toString()]);
+    final zipCode = _firstNotEmpty([json['zip_code']?.toString()]);
+    final country = _firstNotEmpty([json['country']?.toString()]);
+    final composedLocation = _composeLocation(
+      addressLine1: addressLine1,
+      addressLine2: addressLine2,
+      city: city,
+      state: state,
+      zipCode: zipCode,
+      country: country,
+    );
+
     return ManagementJob(
       id: id,
       jobNumber:
@@ -106,6 +121,7 @@ class AdminJobApiService {
             json['Address']?.toString(),
             json['address']?.toString(),
             json['location']?.toString(),
+            composedLocation,
           ]) ??
           '-',
       doorType: _toTitleCase(installationSurface ?? 'Unknown'),
@@ -122,6 +138,15 @@ class AdminJobApiService {
           '-',
       installationType: _toTitleCase(installationSurface ?? ''),
       adminEstimatedPrice: price,
+      addressLine1: addressLine1 ?? '',
+      addressLine2: addressLine2 ?? '',
+      city: city ?? '',
+      state: state ?? '',
+      zipCode: zipCode ?? '',
+      country: country ?? '',
+      petName: _firstNotEmpty([json['pet_name']?.toString()]) ?? '',
+      petType: _firstNotEmpty([json['pet_type']?.toString()]) ?? '',
+      petSize: _firstNotEmpty([json['size']?.toString()]) ?? '',
       jobNotes:
           _firstNotEmpty([
             json['note']?.toString(),
@@ -223,5 +248,24 @@ class AdminJobApiService {
     }
 
     return '${ApiEndpoints.baseUrl}/$url';
+  }
+
+  String _composeLocation({
+    String? addressLine1,
+    String? addressLine2,
+    String? city,
+    String? state,
+    String? zipCode,
+    String? country,
+  }) {
+    final parts = <String>[
+      if (addressLine1 != null && addressLine1.trim().isNotEmpty) addressLine1,
+      if (addressLine2 != null && addressLine2.trim().isNotEmpty) addressLine2,
+      if (city != null && city.trim().isNotEmpty) city,
+      if (state != null && state.trim().isNotEmpty) state,
+      if (zipCode != null && zipCode.trim().isNotEmpty) zipCode,
+      if (country != null && country.trim().isNotEmpty) country,
+    ];
+    return parts.join(', ');
   }
 }

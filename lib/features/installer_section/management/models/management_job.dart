@@ -18,6 +18,15 @@ class ManagementJob {
   final double adminEstimatedPrice;
   final String jobNotes;
   final List<String> sitePhotos;
+  final String addressLine1;
+  final String addressLine2;
+  final String city;
+  final String state;
+  final String zipCode;
+  final String country;
+  final String petName;
+  final String petType;
+  final String petSize;
 
   // Job Progress Tracking fields
   final DateTime? scheduledDate;
@@ -46,6 +55,15 @@ class ManagementJob {
     required this.adminEstimatedPrice,
     required this.jobNotes,
     required this.sitePhotos,
+    this.addressLine1 = '',
+    this.addressLine2 = '',
+    this.city = '',
+    this.state = '',
+    this.zipCode = '',
+    this.country = '',
+    this.petName = '',
+    this.petType = '',
+    this.petSize = '',
     this.scheduledDate,
     this.jobStatusNotes,
     this.additionalWorkAnswer,
@@ -74,6 +92,15 @@ class ManagementJob {
       adminEstimatedPrice:
           (json['admin_estimated_price'] as num?)?.toDouble() ?? 0.0,
       jobNotes: json['job_notes']?.toString() ?? '',
+      addressLine1: json['address_line_1']?.toString() ?? '',
+      addressLine2: json['address_line_2']?.toString() ?? '',
+      city: json['city']?.toString() ?? '',
+      state: json['state']?.toString() ?? '',
+      zipCode: json['zip_code']?.toString() ?? '',
+      country: json['country']?.toString() ?? '',
+      petName: json['pet_name']?.toString() ?? '',
+      petType: json['pet_type']?.toString() ?? '',
+      petSize: json['size']?.toString() ?? '',
       sitePhotos:
           (json['site_photos'] as List?)?.map((e) => e.toString()).toList() ??
           [],
@@ -109,6 +136,15 @@ class ManagementJob {
       'installation_type': installationType,
       'admin_estimated_price': adminEstimatedPrice,
       'job_notes': jobNotes,
+      'address_line_1': addressLine1,
+      'address_line_2': addressLine2,
+      'city': city,
+      'state': state,
+      'zip_code': zipCode,
+      'country': country,
+      'pet_name': petName,
+      'pet_type': petType,
+      'size': petSize,
       'site_photos': sitePhotos,
       'scheduled_date': scheduledDate?.toIso8601String(),
       'job_status_notes': jobStatusNotes,

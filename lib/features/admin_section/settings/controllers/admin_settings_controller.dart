@@ -496,37 +496,39 @@ class AdminSettingsController extends GetxController {
   Future<void> changePassword() async {
     if (isChangingPassword.value) return;
 
-    final oldPasswordController = TextEditingController();
-    final newPasswordController = TextEditingController();
-    final confirmPasswordController = TextEditingController();
+    String oldPassword = '';
+    String newPassword = '';
+    String confirmPassword = '';
 
     try {
       final confirmed = await Get.dialog<bool>(
         AlertDialog(
           title: const Text('Change Password'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: oldPasswordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Old Password'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: newPasswordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'New Password'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: confirmPasswordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Confirm New Password',
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  obscureText: true,
+                  onChanged: (value) => oldPassword = value,
+                  decoration: const InputDecoration(labelText: 'Old Password'),
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                TextField(
+                  obscureText: true,
+                  onChanged: (value) => newPassword = value,
+                  decoration: const InputDecoration(labelText: 'New Password'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  obscureText: true,
+                  onChanged: (value) => confirmPassword = value,
+                  decoration: const InputDecoration(
+                    labelText: 'Confirm New Password',
+                  ),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -543,9 +545,9 @@ class AdminSettingsController extends GetxController {
 
       if (confirmed != true) return;
 
-      final oldPassword = oldPasswordController.text.trim();
-      final newPassword = newPasswordController.text.trim();
-      final confirmPassword = confirmPasswordController.text.trim();
+      oldPassword = oldPassword.trim();
+      newPassword = newPassword.trim();
+      confirmPassword = confirmPassword.trim();
 
       if (oldPassword.isEmpty) {
         EasyLoading.showError('Please enter old password');
@@ -598,9 +600,6 @@ class AdminSettingsController extends GetxController {
       AppLoggerHelper.error('Change password error', error);
       EasyLoading.showError('Failed to change password');
     } finally {
-      oldPasswordController.dispose();
-      newPasswordController.dispose();
-      confirmPasswordController.dispose();
       isChangingPassword.value = false;
       EasyLoading.dismiss();
     }

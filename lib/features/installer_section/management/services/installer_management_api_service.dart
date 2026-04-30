@@ -336,6 +336,17 @@ class InstallerManagementApiService {
 
     final statusRaw = _firstNotEmpty([json['status']?.toString()]) ?? '';
     final price = _toDouble(json['price']);
+    final addressLine1 = _firstNotEmpty([json['address_line_1']?.toString()]);
+    final addressLine2 = _firstNotEmpty([json['address_line_2']?.toString()]);
+    final city = _firstNotEmpty([json['city']?.toString()]);
+    final state = _firstNotEmpty([json['state']?.toString()]);
+    final zipCode = _firstNotEmpty([json['zip_code']?.toString()]);
+    final country = _firstNotEmpty([json['country']?.toString()]);
+    final composedLocation = _composeLocation(
+      city: city,
+      state: state,
+      country: country,
+    );
     final photos = (json['photos'] as List? ?? const [])
         .map((e) => _normalizeMediaUrl(e.toString()))
         .where((e) => e.trim().isNotEmpty)
@@ -363,6 +374,8 @@ class InstallerManagementApiService {
             json['Address']?.toString(),
             json['address']?.toString(),
             json['location']?.toString(),
+            composedLocation,
+            addressLine1,
           ]) ??
           '-',
       doorType: _toTitleCase(installationSurface ?? 'Unknown'),
@@ -379,6 +392,15 @@ class InstallerManagementApiService {
           '-',
       installationType: _buildInstallationType(installationSurface),
       adminEstimatedPrice: price,
+      addressLine1: addressLine1 ?? '',
+      addressLine2: addressLine2 ?? '',
+      city: city ?? '',
+      state: state ?? '',
+      zipCode: zipCode ?? '',
+      country: country ?? '',
+      petName: _firstNotEmpty([json['pet_name']?.toString()]) ?? '',
+      petType: _firstNotEmpty([json['pet_type']?.toString()]) ?? '',
+      petSize: _firstNotEmpty([json['size']?.toString()]) ?? '',
       jobNotes:
           _firstNotEmpty([
             json['note']?.toString(),
@@ -404,6 +426,15 @@ class InstallerManagementApiService {
         json['customer_feedback']?.toString(),
       ]),
     );
+  }
+
+  String _composeLocation({String? city, String? state, String? country}) {
+    final parts = <String>[
+      if (city != null && city.trim().isNotEmpty) city,
+      if (state != null && state.trim().isNotEmpty) state,
+      if (country != null && country.trim().isNotEmpty) country,
+    ];
+    return parts.join(', ');
   }
 
   JobStatus _mapStatus(String status, {required bool isAssignedPost}) {

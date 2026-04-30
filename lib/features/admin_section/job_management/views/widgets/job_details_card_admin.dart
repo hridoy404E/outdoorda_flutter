@@ -15,6 +15,11 @@ class JobDetailsCardAdmin extends StatelessWidget {
     final adminCommission = totalPrice * 0.20;
     final installerPrice = totalPrice - adminCommission;
     final jobNotes = job?.jobNotes.trim() ?? '';
+    final shortLocation = _shortLocation(job);
+    final fullAddress = _fullAddress(job);
+    final petType = job?.petType.trim() ?? '';
+    final petSize = job?.petSize.trim() ?? '';
+    final petName = job?.petName.trim() ?? '';
 
     return Container(
       padding: EdgeInsets.all(24.r),
@@ -60,7 +65,7 @@ class JobDetailsCardAdmin extends StatelessWidget {
           ),
           SizedBox(height: 6.h),
           Text(
-            job?.location ?? '',
+            shortLocation,
             style: figtreeTextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.w600, // SemiBold
@@ -84,9 +89,7 @@ class JobDetailsCardAdmin extends StatelessWidget {
           ),
           SizedBox(height: 6.h),
           Text(
-            job?.petDoorDescription.isNotEmpty == true
-                ? job!.petDoorDescription
-                : 'Extra Large Pet Door',
+            _petDoorTitle(job),
             style: figtreeTextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.w600, // SemiBold
@@ -95,7 +98,7 @@ class JobDetailsCardAdmin extends StatelessWidget {
           ),
           SizedBox(height: 6.h),
           Text(
-            '(Model: ${job?.petDoorModel ?? ''})',
+            _petDoorSubtitle(job),
             style: figtreeTextStyle(
               fontSize: 12.sp,
               fontWeight: FontWeight.w400, // Regular
@@ -103,6 +106,33 @@ class JobDetailsCardAdmin extends StatelessWidget {
             ),
           ),
           SizedBox(height: 16.h),
+
+          if (petName.isNotEmpty ||
+              petType.isNotEmpty ||
+              petSize.isNotEmpty) ...[
+            Text(
+              'Pet Details:',
+              style: figtreeTextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w400,
+                color: const Color(0xFF2B4554),
+              ),
+            ),
+            SizedBox(height: 6.h),
+            Text(
+              [
+                if (petName.isNotEmpty) 'Name: $petName',
+                if (petType.isNotEmpty) 'Type: $petType',
+                if (petSize.isNotEmpty) 'Size: $petSize',
+              ].join(' | '),
+              style: figtreeTextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF2B4554),
+              ),
+            ),
+            SizedBox(height: 16.h),
+          ],
 
           // Installation Type section
           Text(
@@ -221,5 +251,59 @@ class JobDetailsCardAdmin extends StatelessWidget {
       return '\$${value.toStringAsFixed(0)}';
     }
     return '\$${value.toStringAsFixed(2)}';
+  }
+
+  String _petDoorTitle(AdminJob? job) {
+    if (job == null) return 'Pet Door';
+    final petName = job.petName.trim();
+    final petType = job.petType.trim();
+    final base = job.petDoorDescription.trim();
+    if (base.isNotEmpty && base != '-') return base;
+    if (petName.isNotEmpty && petType.isNotEmpty) return '$petName ($petType)';
+    if (petName.isNotEmpty) return petName;
+    if (petType.isNotEmpty) return petType;
+    return 'Pet Door';
+  }
+
+  String _petDoorSubtitle(AdminJob? job) {
+    if (job == null) return '(Model: XL2000)';
+    final model = job.petDoorModel.trim().isNotEmpty
+        ? job.petDoorModel
+        : 'XL2000';
+    final petSize = job.petSize.trim();
+    if (petSize.isNotEmpty) return '(Model: $model)  •  Size: $petSize';
+    return '(Model: $model)';
+  }
+
+  String _fullAddress(AdminJob? job) {
+    if (job == null) return '';
+    final parts = <String>[
+      job.addressLine1.trim(),
+      job.addressLine2.trim(),
+      job.city.trim(),
+      job.state.trim(),
+      job.zipCode.trim(),
+      job.country.trim(),
+    ].where((e) => e.isNotEmpty).toList();
+    return parts.join(', ');
+  }
+
+  String _shortLocation(AdminJob? job) {
+    if (job == null) return '-';
+
+    final parts = <String>[
+      job.city.trim(),
+      job.state.trim(),
+      job.country.trim(),
+    ].where((e) => e.isNotEmpty).toList();
+
+    if (parts.isNotEmpty) return parts.join(', ');
+
+    final line1 = job.addressLine1.trim();
+    if (line1.isNotEmpty) return line1;
+
+    final fallback = job.location.trim();
+    if (fallback.isNotEmpty) return fallback;
+    return '-';
   }
 }

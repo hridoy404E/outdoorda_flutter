@@ -37,19 +37,19 @@ class AppValidator {
     }
 
     // Check for uppercase letters
-    if (!value.contains(RegExp(r'[A-Z]'))) {
-      return 'Password must contain at least one uppercase letter.';
-    }
+    // if (!value.contains(RegExp(r'[A-Z]'))) {
+    //   return 'Password must contain at least one uppercase letter.';
+    // }
 
-    // Check for numbers
-    if (!value.contains(RegExp(r'[0-9]'))) {
-      return 'Password must contain at least one number.';
-    }
+    // // Check for numbers
+    // if (!value.contains(RegExp(r'[0-9]'))) {
+    //   return 'Password must contain at least one number.';
+    // }
 
-    // Check for special characters
-    if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
-      return 'Password must contain at least one special character.';
-    }
+    // // Check for special characters
+    // if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+    //   return 'Password must contain at least one special character.';
+    // }
     return null;
   }
 
@@ -88,20 +88,20 @@ class AppValidator {
       return 'Full name is required.';
     }
 
-    final trimmedValue = value.trim();
+    // final trimmedValue = value.trim();
 
-    // Check if name contains at least 2 words
-    final words = trimmedValue.split(RegExp(r'\s+'));
-    if (words.length < 2) {
-      return 'Please enter your full name (first and last name).';
-    }
+    // // Check if name contains at least 2 words
+    // final words = trimmedValue.split(RegExp(r'\s+'));
+    // if (words.length < 2) {
+    //   return 'Please enter your full name (first and last name).';
+    // }
 
-    // Check if each word has at least 2 characters
-    for (final word in words) {
-      if (word.length < 2) {
-        return 'Each name must have at least 2 characters.';
-      }
-    }
+    // // Check if each word has at least 2 characters
+    // for (final word in words) {
+    //   if (word.length < 2) {
+    //     return 'Each name must have at least 2 characters.';
+    //   }
+    // }
 
     return null;
   }
