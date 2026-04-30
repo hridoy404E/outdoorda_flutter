@@ -44,6 +44,12 @@ class CreateNewJobController extends GetxController {
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
   final addressController = TextEditingController();
+  final addressLine1Controller = TextEditingController();
+  final addressLine2Controller = TextEditingController();
+  final cityController = TextEditingController();
+  final stateController = TextEditingController();
+  final zipCodeController = TextEditingController();
+  final countryController = TextEditingController();
   final petNameController = TextEditingController();
   final petTypeController = TextEditingController();
   final petSizeController = TextEditingController();
@@ -89,6 +95,12 @@ class CreateNewJobController extends GetxController {
     emailController.dispose();
     phoneController.dispose();
     addressController.dispose();
+    addressLine1Controller.dispose();
+    addressLine2Controller.dispose();
+    cityController.dispose();
+    stateController.dispose();
+    zipCodeController.dispose();
+    countryController.dispose();
     petNameController.dispose();
     petTypeController.dispose();
     petSizeController.dispose();
@@ -160,6 +172,30 @@ class CreateNewJobController extends GetxController {
     }
     if (addressController.text.trim().isEmpty) {
       EasyLoading.showError('Please enter installation address');
+      return false;
+    }
+    if (addressLine1Controller.text.trim().isEmpty) {
+      EasyLoading.showError('Please enter address line 1');
+      return false;
+    }
+    if (addressLine2Controller.text.trim().isEmpty) {
+      EasyLoading.showError('Please enter address line 2');
+      return false;
+    }
+    if (cityController.text.trim().isEmpty) {
+      EasyLoading.showError('Please enter city');
+      return false;
+    }
+    if (stateController.text.trim().isEmpty) {
+      EasyLoading.showError('Please enter state');
+      return false;
+    }
+    if (zipCodeController.text.trim().isEmpty) {
+      EasyLoading.showError('Please enter zip code');
+      return false;
+    }
+    if (countryController.text.trim().isEmpty) {
+      EasyLoading.showError('Please enter country');
       return false;
     }
     if (selectedServiceArea.value == null) {
@@ -438,6 +474,12 @@ class CreateNewJobController extends GetxController {
         custIds: selectedInstallerIds.join(','),
         custEmail: emailController.text.trim(),
         address: addressController.text.trim(),
+        addressLine1: addressLine1Controller.text.trim(),
+        addressLine2: addressLine2Controller.text.trim(),
+        city: cityController.text.trim(),
+        state: stateController.text.trim(),
+        zipCode: zipCodeController.text.trim(),
+        country: countryController.text.trim(),
         custName: customerNameController.text.trim(),
         petType: petTypeController.text.trim(),
       );
@@ -470,6 +512,12 @@ class CreateNewJobController extends GetxController {
     emailController.clear();
     phoneController.clear();
     addressController.clear();
+    addressLine1Controller.clear();
+    addressLine2Controller.clear();
+    cityController.clear();
+    stateController.clear();
+    zipCodeController.clear();
+    countryController.clear();
     selectedServiceArea.value = null;
     petNameController.clear();
     petTypeController.clear();

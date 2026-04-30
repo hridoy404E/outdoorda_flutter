@@ -27,6 +27,22 @@ class ManagementItemCard extends StatelessWidget {
         : job.status.displayName;
   }
 
+  String get _locationText {
+    final city = job.city.trim();
+    final state = job.state.trim();
+    final country = job.country.trim();
+    final parts = <String>[
+      if (city.isNotEmpty) city,
+      if (state.isNotEmpty) state,
+      if (country.isNotEmpty) country,
+    ];
+    if (parts.isNotEmpty) return parts.join(', ');
+
+    final addressLine1 = job.addressLine1.trim();
+    if (addressLine1.isNotEmpty) return addressLine1;
+    return job.location.trim().isNotEmpty ? job.location : '-';
+  }
+
   /// Get gradient colors based on job status (Figma exact)
   LinearGradient _getStatusGradient() {
     if (_isPending) {
@@ -173,13 +189,13 @@ class ManagementItemCard extends StatelessWidget {
                 SizedBox(width: 8.w), // Gap between icon and text
                 Expanded(
                   child: Text(
-                    job.location,
+                    _locationText,
                     style: figtreeTextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w400, // Regular
                       color: const Color(0xFF6C7787), // #6c7787
                     ),
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),

@@ -226,6 +226,8 @@ class ManagementDetailsScreen extends StatelessWidget {
                     SizedBox(height: 16.h), // 16px gap after card
                     // Job Details Card
                     JobDetailsCard(job: job),
+                    SizedBox(height: 16.h),
+                    _buildAddressDetailsCard(job),
                     SizedBox(height: 16.h), // 16px gap before site photos
                     // Site photos and document files section
                     if (job.sitePhotos.isNotEmpty) ...[
@@ -286,6 +288,86 @@ class ManagementDetailsScreen extends StatelessWidget {
               ),
             );
           }),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddressDetailsCard(ManagementJob job) {
+    return Container(
+      padding: EdgeInsets.all(16.r),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEBE8E3),
+        borderRadius: BorderRadius.circular(24.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 24.r,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Address Details',
+            style: figtreeTextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF2B4554),
+            ),
+          ),
+          SizedBox(height: 12.h),
+          Container(height: 1.h, color: const Color(0xFFC2CCD3)),
+          SizedBox(height: 12.h),
+          _buildAddressRow('Address Line 1', job.addressLine1),
+          _buildAddressRow('Address Line 2', job.addressLine2),
+          _buildAddressRow('City', job.city),
+          _buildAddressRow('State', job.state),
+          _buildAddressRow('Zip Code', job.zipCode),
+          _buildAddressRow('Country', job.country, isLast: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddressRow(String label, String value, {bool isLast = false}) {
+    final display = value.trim().isEmpty ? '-' : value.trim();
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 10.h),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.52),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: const Color(0xFFC2CCD3)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 106.w,
+              child: Text(
+                label,
+                style: figtreeTextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF6C7787),
+                ),
+              ),
+            ),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: Text(
+                display,
+                style: figtreeTextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF2B4554),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

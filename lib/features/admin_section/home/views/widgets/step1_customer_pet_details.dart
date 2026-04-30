@@ -56,6 +56,37 @@ class Step1CustomerPetDetails extends StatelessWidget {
         ),
         SizedBox(height: 16.h),
 
+        JobInputField(
+          label: 'Address Line 1',
+          controller: controller.addressLine1Controller,
+        ),
+        SizedBox(height: 16.h),
+
+        JobInputField(
+          label: 'Address Line 2',
+          controller: controller.addressLine2Controller,
+        ),
+        SizedBox(height: 16.h),
+
+        JobInputField(label: 'City', controller: controller.cityController),
+        SizedBox(height: 16.h),
+
+        JobInputField(label: 'State', controller: controller.stateController),
+        SizedBox(height: 16.h),
+
+        JobInputField(
+          label: 'Zip Code',
+          controller: controller.zipCodeController,
+          keyboardType: TextInputType.number,
+        ),
+        SizedBox(height: 16.h),
+
+        JobInputField(
+          label: 'Country',
+          controller: controller.countryController,
+        ),
+        SizedBox(height: 16.h),
+
         /// Service Area
         Obx(() => _buildServiceAreaDropdown(controller)),
         SizedBox(height: 16.h),

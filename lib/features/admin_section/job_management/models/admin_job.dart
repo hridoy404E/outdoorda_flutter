@@ -17,6 +17,15 @@ class AdminJob {
   final double adminEstimatedPrice;
   final String jobNotes;
   final List<String> sitePhotos;
+  final String addressLine1;
+  final String addressLine2;
+  final String city;
+  final String state;
+  final String zipCode;
+  final String country;
+  final String petName;
+  final String petType;
+  final String petSize;
 
   // Job tracking fields (for completed jobs)
   final DateTime? scheduledDate;
@@ -42,6 +51,15 @@ class AdminJob {
     required this.adminEstimatedPrice,
     required this.jobNotes,
     required this.sitePhotos,
+    this.addressLine1 = '',
+    this.addressLine2 = '',
+    this.city = '',
+    this.state = '',
+    this.zipCode = '',
+    this.country = '',
+    this.petName = '',
+    this.petType = '',
+    this.petSize = '',
     this.scheduledDate,
     this.installerNotes,
     this.additionalWorkPerformed,
@@ -66,6 +84,15 @@ class AdminJob {
     double? adminEstimatedPrice,
     String? jobNotes,
     List<String>? sitePhotos,
+    String? addressLine1,
+    String? addressLine2,
+    String? city,
+    String? state,
+    String? zipCode,
+    String? country,
+    String? petName,
+    String? petType,
+    String? petSize,
     DateTime? scheduledDate,
     String? installerNotes,
     bool? additionalWorkPerformed,
@@ -89,6 +116,15 @@ class AdminJob {
       adminEstimatedPrice: adminEstimatedPrice ?? this.adminEstimatedPrice,
       jobNotes: jobNotes ?? this.jobNotes,
       sitePhotos: sitePhotos ?? this.sitePhotos,
+      addressLine1: addressLine1 ?? this.addressLine1,
+      addressLine2: addressLine2 ?? this.addressLine2,
+      city: city ?? this.city,
+      state: state ?? this.state,
+      zipCode: zipCode ?? this.zipCode,
+      country: country ?? this.country,
+      petName: petName ?? this.petName,
+      petType: petType ?? this.petType,
+      petSize: petSize ?? this.petSize,
       scheduledDate: scheduledDate ?? this.scheduledDate,
       installerNotes: installerNotes ?? this.installerNotes,
       additionalWorkPerformed:
@@ -119,6 +155,15 @@ class AdminJob {
       adminEstimatedPrice:
           (json['admin_estimated_price'] as num?)?.toDouble() ?? 0.0,
       jobNotes: json['job_notes']?.toString() ?? '',
+      addressLine1: json['address_line_1']?.toString() ?? '',
+      addressLine2: json['address_line_2']?.toString() ?? '',
+      city: json['city']?.toString() ?? '',
+      state: json['state']?.toString() ?? '',
+      zipCode: json['zip_code']?.toString() ?? '',
+      country: json['country']?.toString() ?? '',
+      petName: json['pet_name']?.toString() ?? '',
+      petType: json['pet_type']?.toString() ?? '',
+      petSize: json['size']?.toString() ?? '',
       sitePhotos:
           (json['site_photos'] as List?)?.map((e) => e.toString()).toList() ??
           [],
@@ -150,6 +195,15 @@ class AdminJob {
       'installation_type': installationType,
       'admin_estimated_price': adminEstimatedPrice,
       'job_notes': jobNotes,
+      'address_line_1': addressLine1,
+      'address_line_2': addressLine2,
+      'city': city,
+      'state': state,
+      'zip_code': zipCode,
+      'country': country,
+      'pet_name': petName,
+      'pet_type': petType,
+      'size': petSize,
       'site_photos': sitePhotos,
       'scheduled_date': scheduledDate?.toIso8601String(),
       'installer_notes': installerNotes,
