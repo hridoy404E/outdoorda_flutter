@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "435227316830",
+    "project_id": "outdoda",
+    "storage_bucket": "outdoda.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:435227316830:android:74e51b3bf48f5c8d87dacf",
+        "android_client_info": {
+          "package_name": "com.outdoda.softvence"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrA4PEOC-QKa8ome6kfJiTFfSfddbE1gw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

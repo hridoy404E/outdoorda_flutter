@@ -1,0 +1,179 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:outdoorda_flutter/core/common/styles/global_text_style.dart';
+import 'package:outdoorda_flutter/core/common/widgets/custom_button.dart';
+import 'package:outdoorda_flutter/core/utils/constants/app_strings.dart';
+import 'package:outdoorda_flutter/core/utils/constants/colors.dart';
+import 'package:outdoorda_flutter/features/admin_section/home/controllers/create_new_job_controller.dart';
+import 'package:outdoorda_flutter/features/admin_section/home/views/widgets/job_input_field.dart';
+import 'package:outdoorda_flutter/features/admin_section/home/views/widgets/step_indicator_widget.dart';
+import 'package:outdoorda_flutter/features/customer_section/home/service_request/models/service_area_model.dart';
+
+/// Step 1: Customer & Pet Details
+/// 7 input fields with gradient button
+class Step1CustomerPetDetails extends StatelessWidget {
+  const Step1CustomerPetDetails({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<CreateNewJobController>();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        /// Step indicator
+        const StepIndicatorWidget(currentStep: 0),
+        SizedBox(height: 16.h),
+
+        /// Customer Name
+        JobInputField(
+          label: AppStrings.customerName,
+          controller: controller.customerNameController,
+        ),
+        SizedBox(height: 16.h),
+
+        /// Email
+        JobInputField(
+          label: AppStrings.email,
+          controller: controller.emailController,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        SizedBox(height: 16.h),
+
+        /// Phone
+        JobInputField(
+          label: AppStrings.phone,
+          controller: controller.phoneController,
+          keyboardType: TextInputType.phone,
+        ),
+        SizedBox(height: 16.h),
+
+        /// Installation Address
+        JobInputField(
+          label: AppStrings.installationAddress,
+          controller: controller.addressController,
+        ),
+        SizedBox(height: 16.h),
+
+        /// Service Area
+        Obx(() => _buildServiceAreaDropdown(controller)),
+        SizedBox(height: 16.h),
+
+        /// Pet Name
+        JobInputField(
+          label: AppStrings.petName,
+          controller: controller.petNameController,
+        ),
+        SizedBox(height: 16.h),
+
+        /// Pet Type
+        JobInputField(
+          label: AppStrings.petType,
+          controller: controller.petTypeController,
+        ),
+        SizedBox(height: 16.h),
+
+        /// Pet Size
+        JobInputField(
+          label: AppStrings.petSize,
+          controller: controller.petSizeController,
+        ),
+        SizedBox(height: 24.h),
+
+        /// Next button
+        CustomButton(
+          text: AppStrings.nextPetDoorSelection,
+          onPressed: controller.nextStep,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildServiceAreaDropdown(CreateNewJobController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          AppStrings.serviceArea,
+          style: figtreeTextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            color: AppColors.textColor,
+          ),
+        ),
+        SizedBox(height: 4.h),
+        Container(
+          height: 46.h,
+          padding: EdgeInsets.symmetric(horizontal: 14.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: AppColors.inputBorderColor),
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<ServiceAreaModel>(
+              isExpanded: true,
+              value: controller.selectedServiceArea.value,
+              hint: Text(
+                controller.isServiceAreaLoading.value
+                    ? AppStrings.loadingServiceAreas
+                    : AppStrings.selectServiceArea,
+                style: montserratTextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.secondary500,
+                ),
+              ),
+              icon: controller.isServiceAreaLoading.value
+                  ? SizedBox(
+                      height: 16.r,
+                      width: 16.r,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.gradientStart,
+                      ),
+                    )
+                  : Icon(
+                      Icons.keyboard_arrow_down_outlined,
+                      color: AppColors.secondary500,
+                    ),
+              items: controller.serviceAreas
+                  .map(
+                    (area) => DropdownMenuItem<ServiceAreaModel>(
+                      value: area,
+                      child: Text(
+                        area.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: montserratTextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.secondary500,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: controller.isServiceAreaLoading.value
+                  ? null
+                  : controller.selectServiceArea,
+            ),
+          ),
+        ),
+        if (!controller.isServiceAreaLoading.value &&
+            controller.serviceAreas.isEmpty)
+          Padding(
+            padding: EdgeInsets.only(top: 6.h),
+            child: Text(
+              AppStrings.noServiceAreasAvailable,
+              style: figtreeTextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+                color: AppColors.neutral400,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
