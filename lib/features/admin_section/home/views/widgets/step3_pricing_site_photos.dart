@@ -49,14 +49,6 @@ class Step3PricingSitePhotos extends StatelessWidget {
         ),
         SizedBox(height: 16.h),
 
-        /// Job Notes
-        JobInputField(
-          label: AppStrings.jobNotes,
-          controller: controller.jobNotesController,
-          maxLines: 1,
-        ),
-        SizedBox(height: 18.h),
-
         /// Site Photos section
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,

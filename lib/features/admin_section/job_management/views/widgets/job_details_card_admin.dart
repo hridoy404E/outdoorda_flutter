@@ -16,7 +16,6 @@ class JobDetailsCardAdmin extends StatelessWidget {
     final installerPrice = totalPrice - adminCommission;
     final jobNotes = job?.jobNotes.trim() ?? '';
     final shortLocation = _shortLocation(job);
-    final fullAddress = _fullAddress(job);
     final petType = job?.petType.trim() ?? '';
     final petSize = job?.petSize.trim() ?? '';
     final petName = job?.petName.trim() ?? '';
@@ -275,26 +274,12 @@ class JobDetailsCardAdmin extends StatelessWidget {
     return '(Model: $model)';
   }
 
-  String _fullAddress(AdminJob? job) {
-    if (job == null) return '';
-    final parts = <String>[
-      job.addressLine1.trim(),
-      job.addressLine2.trim(),
-      job.city.trim(),
-      job.state.trim(),
-      job.zipCode.trim(),
-      job.country.trim(),
-    ].where((e) => e.isNotEmpty).toList();
-    return parts.join(', ');
-  }
-
   String _shortLocation(AdminJob? job) {
     if (job == null) return '-';
 
     final parts = <String>[
       job.city.trim(),
       job.state.trim(),
-      job.country.trim(),
     ].where((e) => e.isNotEmpty).toList();
 
     if (parts.isNotEmpty) return parts.join(', ');

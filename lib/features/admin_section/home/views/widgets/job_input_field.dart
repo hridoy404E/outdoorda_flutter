@@ -12,12 +12,14 @@ class JobInputField extends StatelessWidget {
     required this.controller,
     this.keyboardType,
     this.maxLines = 1,
+    this.enabled = true,
   });
 
   final String label;
   final TextEditingController controller;
   final TextInputType? keyboardType;
   final int maxLines;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +49,7 @@ class JobInputField extends StatelessWidget {
             controller: controller,
             keyboardType: keyboardType,
             maxLines: maxLines,
+            enabled: enabled,
             style: montserratTextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w400,

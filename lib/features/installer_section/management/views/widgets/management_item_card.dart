@@ -30,11 +30,9 @@ class ManagementItemCard extends StatelessWidget {
   String get _locationText {
     final city = job.city.trim();
     final state = job.state.trim();
-    final country = job.country.trim();
     final parts = <String>[
       if (city.isNotEmpty) city,
       if (state.isNotEmpty) state,
-      if (country.isNotEmpty) country,
     ];
     if (parts.isNotEmpty) return parts.join(', ');
 

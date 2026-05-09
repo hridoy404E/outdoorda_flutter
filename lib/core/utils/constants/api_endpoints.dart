@@ -49,6 +49,8 @@ class ApiEndpoints {
       '$baseUrl/payment/installer/stripe/create-account';
   static const String installerStripeOnboardingLink =
       '$baseUrl/payment/installer/stripe/onboarding-link';
+  static const String stripeManualWebhook =
+      '$baseUrl/payment/stripe/manual-webhook';
   static const String installerPayments =
       '$baseUrl/payment/installer/payments/';
   static const String saveFcmToken = '$baseUrl/communications/save_token/';

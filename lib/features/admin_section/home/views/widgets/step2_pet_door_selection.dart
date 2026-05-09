@@ -5,11 +5,9 @@ import 'package:outdoorda_flutter/core/common/styles/global_text_style.dart';
 import 'package:outdoorda_flutter/core/utils/constants/app_strings.dart';
 import 'package:outdoorda_flutter/core/utils/constants/colors.dart';
 import 'package:outdoorda_flutter/features/admin_section/home/controllers/create_new_job_controller.dart';
-import 'package:outdoorda_flutter/features/admin_section/home/views/widgets/job_input_field.dart';
 import 'package:outdoorda_flutter/features/admin_section/home/views/widgets/step_indicator_widget.dart';
 
-/// Step 2: Pet Door Selection
-/// 3 input fields with Back and Next buttons
+/// Step 2: Installation Surface
 class Step2PetDoorSelection extends StatelessWidget {
   const Step2PetDoorSelection({super.key});
 
@@ -24,26 +22,12 @@ class Step2PetDoorSelection extends StatelessWidget {
         const StepIndicatorWidget(currentStep: 1),
         SizedBox(height: 16.h),
 
-        /// Pet Door Type
-        JobInputField(
-          label: AppStrings.petDoorType,
-          controller: controller.petDoorTypeController,
-        ),
-        SizedBox(height: 16.h),
-
-        /// Door Model
-        JobInputField(
-          label: AppStrings.doorModel,
-          controller: controller.doorModelController,
-        ),
-        SizedBox(height: 16.h),
-
         /// Installation Type
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              AppStrings.installationType,
+              '${AppStrings.installationType}*',
               style: figtreeTextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w400,

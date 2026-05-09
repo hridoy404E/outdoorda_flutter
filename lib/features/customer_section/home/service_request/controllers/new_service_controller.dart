@@ -21,10 +21,17 @@ class NewServiceController extends GetxController {
 
   /// Text controllers
   final petNameController = TextEditingController();
-  // final priceController = TextEditingController();
   final typeController = TextEditingController();
   final sizeController = TextEditingController();
-  final addressController = TextEditingController();
+  final customerNameController = TextEditingController();
+  final emailController = TextEditingController();
+  final phoneController = TextEditingController();
+  final addressLine1Controller = TextEditingController();
+  final addressLine2Controller = TextEditingController();
+  final cityController = TextEditingController();
+  final stateController = TextEditingController();
+  final zipCodeController = TextEditingController();
+  final countryController = TextEditingController();
 
   /// Selected installation surface
   final RxString selectedSurface = ''.obs;
@@ -51,27 +58,42 @@ class NewServiceController extends GetxController {
   void onInit() {
     super.onInit();
     AppLoggerHelper.info('AddServiceController initialized');
+    countryController.text = 'USA';
     loadServiceAreas();
   }
 
   @override
   void onClose() {
     petNameController.dispose();
-    // priceController.dispose();
     typeController.dispose();
     sizeController.dispose();
-    addressController.dispose();
+    customerNameController.dispose();
+    emailController.dispose();
+    phoneController.dispose();
+    addressLine1Controller.dispose();
+    addressLine2Controller.dispose();
+    cityController.dispose();
+    stateController.dispose();
+    zipCodeController.dispose();
+    countryController.dispose();
     super.onClose();
   }
 
   /// Reset all form fields
   void resetForm() {
     currentStep.value = 0;
+    customerNameController.clear();
+    emailController.clear();
+    phoneController.clear();
     petNameController.clear();
-    // priceController.clear();
     typeController.clear();
     sizeController.clear();
-    addressController.clear();
+    addressLine1Controller.clear();
+    addressLine2Controller.clear();
+    cityController.clear();
+    stateController.clear();
+    zipCodeController.clear();
+    countryController.text = 'USA';
     selectedSurface.value = '';
     selectedAttachment.value = null;
     selectedAttachmentName.value = '';
@@ -103,14 +125,22 @@ class NewServiceController extends GetxController {
 
   /// Validate step 1 (Pet Info)
   bool _validateStep1() {
+    if (customerNameController.text.trim().isEmpty) {
+      EasyLoading.showError('Please enter customer name');
+      return false;
+    }
+    if (emailController.text.trim().isEmpty) {
+      EasyLoading.showError('Please enter email');
+      return false;
+    }
+    if (phoneController.text.trim().isEmpty) {
+      EasyLoading.showError('Please enter phone number');
+      return false;
+    }
     if (petNameController.text.trim().isEmpty) {
       EasyLoading.showError(AppStrings.pleaseEnterPetName);
       return false;
     }
-    // if (priceController.text.trim().isEmpty) {
-    //   EasyLoading.showError('Please enter the price');
-    //   return false;
-    // }
     if (typeController.text.trim().isEmpty) {
       EasyLoading.showError(AppStrings.pleaseSelectType);
       return false;
@@ -129,8 +159,20 @@ class NewServiceController extends GetxController {
       return false;
     }
 
-    if (addressController.text.trim().isEmpty) {
-      EasyLoading.showError(AppStrings.pleaseEnterAddress);
+    if (addressLine1Controller.text.trim().isEmpty) {
+      EasyLoading.showError('Please enter address line 1');
+      return false;
+    }
+    if (cityController.text.trim().isEmpty) {
+      EasyLoading.showError('Please enter city');
+      return false;
+    }
+    if (stateController.text.trim().isEmpty) {
+      EasyLoading.showError('Please enter state');
+      return false;
+    }
+    if (zipCodeController.text.trim().isEmpty) {
+      EasyLoading.showError('Please enter zip code');
       return false;
     }
     if (selectedSurface.value.isEmpty) {
@@ -241,13 +283,21 @@ class NewServiceController extends GetxController {
       EasyLoading.show(status: 'Submitting request...');
 
       final response = await _serviceRequestApiService.createServiceRequest(
+        custName: customerNameController.text.trim(),
+        custEmail: emailController.text.trim(),
+        custPhone: phoneController.text.trim(),
         petName: petNameController.text.trim(),
         petType: typeController.text.trim(),
         price: '0',
         size: sizeController.text.trim(),
         installationSurface: _formatSurface(selectedSurface.value),
         serviceAreaId: selectedArea.id,
-        address: addressController.text.trim(),
+        addressLine1: addressLine1Controller.text.trim(),
+        addressLine2: addressLine2Controller.text.trim(),
+        city: cityController.text.trim(),
+        state: stateController.text.trim(),
+        zipCode: zipCodeController.text.trim(),
+        country: 'USA',
         attachment: selectedAttachment.value!,
         authorization: authorization,
       );
@@ -257,7 +307,14 @@ class NewServiceController extends GetxController {
         Pet Name: ${petNameController.text.trim()}
         Type: ${typeController.text.trim()}
         Size: ${sizeController.text.trim()}
-        Address: ${addressController.text.trim()}
+        Customer Name: ${customerNameController.text.trim()}
+        Email: ${emailController.text.trim()}
+        Phone: ${phoneController.text.trim()}
+        Address Line 1: ${addressLine1Controller.text.trim()}
+        Address Line 2: ${addressLine2Controller.text.trim()}
+        City: ${cityController.text.trim()}
+        State: ${stateController.text.trim()}
+        Zip Code: ${zipCodeController.text.trim()}
         Surface: ${selectedSurface.value}
         Service Area: ${selectedArea.name}
         Attachment: ${selectedAttachment.value?.path}

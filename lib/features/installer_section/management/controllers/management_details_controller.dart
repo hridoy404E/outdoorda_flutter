@@ -50,11 +50,11 @@ class ManagementDetailsController extends GetxController {
   bool get isInProgress => currentJob.value?.status == JobStatus.inProgress;
   bool get isCompleted => currentJob.value?.status == JobStatus.completed;
 
-  // Section 1 editable only in-progress.
-  bool get canEditScheduledDate => isInProgress;
-  // Section 2 editable in in-progress and completed.
-  bool get canEditAdditionalWork => isInProgress || isCompleted;
-  bool get canEditCustomerSatisfaction => isInProgress || isCompleted;
+  // Job progress tracking is editable once the installer is assigned.
+  bool get canEditScheduledDate => isAssigned || isInProgress;
+  bool get canEditAdditionalWork => isAssigned || isInProgress || isCompleted;
+  bool get canEditCustomerSatisfaction =>
+      isAssigned || isInProgress || isCompleted;
   bool get canEditJobStatusNotes => isAssigned || isInProgress || isCompleted;
 
   // Check if Done button should be visible
@@ -158,35 +158,43 @@ class ManagementDetailsController extends GetxController {
       return;
     }
 
-    final statusNote = jobStatusNotesController.text.trim();
-
     try {
+      if (!_validateInProgressRequiredFields()) return;
+
       isSavingProgress.value = true;
       EasyLoading.show(status: 'Updating job status...');
+
+      final statusNote = jobStatusNotesController.text.trim();
+      final additionalNote = additionalWorkAnswer.value == true
+          ? additionalWorkNotesController.text.trim()
+          : '';
 
       await _installerManagementApiService.updateInstallerPostStatus(
         postId: job.id,
         authorization: authorization,
         newStatus: 'IN_PROGRESS',
+        scheduledDate: scheduledDate.value,
         note: statusNote,
+        isAdditionalService: additionalWorkAnswer.value,
+        additionalServiceNote: additionalNote,
+        isCustomerSatisfied: customerSatisfiedAnswer.value,
+        customerSatisfactionNote: customerSatisfiedNotesController.text.trim(),
       );
 
-      scheduledDate.value = null;
-      additionalWorkAnswer.value = null;
-      additionalWorkNotesController.clear();
-      customerSatisfiedAnswer.value = null;
-      customerSatisfiedNotesController.clear();
       hasChanges.value = false;
 
       currentJob.value = _copyJob(
         job,
         status: JobStatus.inProgress,
-        scheduledDate: null,
+        scheduledDate: scheduledDate.value,
         jobStatusNotes: statusNote.isNotEmpty ? statusNote : null,
-        additionalWorkAnswer: null,
-        additionalWorkNotes: null,
-        customerSatisfiedAnswer: null,
-        customerSatisfiedNotes: null,
+        additionalWorkAnswer: additionalWorkAnswer.value,
+        additionalWorkNotes: additionalNote.isNotEmpty ? additionalNote : null,
+        customerSatisfiedAnswer: customerSatisfiedAnswer.value,
+        customerSatisfiedNotes:
+            customerSatisfiedNotesController.text.trim().isNotEmpty
+            ? customerSatisfiedNotesController.text.trim()
+            : null,
       );
 
       AppLoggerHelper.info('Job moved to in progress: ${job.jobNumber}');

@@ -43,7 +43,6 @@ class CreateNewJobController extends GetxController {
   final customerNameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
-  final addressController = TextEditingController();
   final addressLine1Controller = TextEditingController();
   final addressLine2Controller = TextEditingController();
   final cityController = TextEditingController();
@@ -58,14 +57,10 @@ class CreateNewJobController extends GetxController {
   final RxBool isServiceAreaLoading = false.obs;
 
   /// Form controllers for Step 2: Pet Door Selection
-  final petDoorTypeController = TextEditingController();
-  final doorModelController = TextEditingController();
-  final installationTypeController = TextEditingController();
   final RxnString selectedInstallationSurface = RxnString();
 
   /// Form controllers for Step 3: Pricing & Site Photos
   final estimatedPriceController = TextEditingController();
-  final jobNotesController = TextEditingController();
 
   /// Uploaded images list
   final RxList<File> uploadedImages = <File>[].obs;
@@ -83,6 +78,7 @@ class CreateNewJobController extends GetxController {
   void onInit() {
     super.onInit();
     pageController = PageController();
+    countryController.text = 'USA';
     _loadServiceAreas();
     _loadInstallers();
     AppLoggerHelper.info('CreateNewJobController initialized');
@@ -94,7 +90,6 @@ class CreateNewJobController extends GetxController {
     customerNameController.dispose();
     emailController.dispose();
     phoneController.dispose();
-    addressController.dispose();
     addressLine1Controller.dispose();
     addressLine2Controller.dispose();
     cityController.dispose();
@@ -104,11 +99,7 @@ class CreateNewJobController extends GetxController {
     petNameController.dispose();
     petTypeController.dispose();
     petSizeController.dispose();
-    petDoorTypeController.dispose();
-    doorModelController.dispose();
-    installationTypeController.dispose();
     estimatedPriceController.dispose();
-    jobNotesController.dispose();
     super.onClose();
   }
 
@@ -170,16 +161,8 @@ class CreateNewJobController extends GetxController {
       EasyLoading.showError('Please enter phone number');
       return false;
     }
-    if (addressController.text.trim().isEmpty) {
-      EasyLoading.showError('Please enter installation address');
-      return false;
-    }
     if (addressLine1Controller.text.trim().isEmpty) {
       EasyLoading.showError('Please enter address line 1');
-      return false;
-    }
-    if (addressLine2Controller.text.trim().isEmpty) {
-      EasyLoading.showError('Please enter address line 2');
       return false;
     }
     if (cityController.text.trim().isEmpty) {
@@ -192,10 +175,6 @@ class CreateNewJobController extends GetxController {
     }
     if (zipCodeController.text.trim().isEmpty) {
       EasyLoading.showError('Please enter zip code');
-      return false;
-    }
-    if (countryController.text.trim().isEmpty) {
-      EasyLoading.showError('Please enter country');
       return false;
     }
     if (selectedServiceArea.value == null) {
@@ -219,14 +198,6 @@ class CreateNewJobController extends GetxController {
 
   /// Validate Step 2: Pet Door Selection
   bool _validateStep2() {
-    if (petDoorTypeController.text.trim().isEmpty) {
-      EasyLoading.showError('Please enter pet door type');
-      return false;
-    }
-    if (doorModelController.text.trim().isEmpty) {
-      EasyLoading.showError('Please enter door model');
-      return false;
-    }
     if (selectedInstallationSurface.value == null) {
       EasyLoading.showError('Please select installation surface');
       return false;
@@ -236,7 +207,6 @@ class CreateNewJobController extends GetxController {
 
   void setInstallationSurface(String? value) {
     selectedInstallationSurface.value = value;
-    installationTypeController.text = value ?? '';
   }
 
   void selectServiceArea(ServiceAreaModel? area) {
@@ -469,17 +439,15 @@ class CreateNewJobController extends GetxController {
         installationSurface: selectedInstallationSurface.value!,
         price: estimatedPriceController.text.trim(),
         serviceAreaId: selectedArea.id,
-        jobNotes: jobNotesController.text.trim(),
         petName: petNameController.text.trim(),
         custIds: selectedInstallerIds.join(','),
         custEmail: emailController.text.trim(),
-        address: addressController.text.trim(),
         addressLine1: addressLine1Controller.text.trim(),
         addressLine2: addressLine2Controller.text.trim(),
         city: cityController.text.trim(),
         state: stateController.text.trim(),
         zipCode: zipCodeController.text.trim(),
-        country: countryController.text.trim(),
+        country: 'USA',
         custName: customerNameController.text.trim(),
         petType: petTypeController.text.trim(),
       );
@@ -511,23 +479,18 @@ class CreateNewJobController extends GetxController {
     customerNameController.clear();
     emailController.clear();
     phoneController.clear();
-    addressController.clear();
     addressLine1Controller.clear();
     addressLine2Controller.clear();
     cityController.clear();
     stateController.clear();
     zipCodeController.clear();
-    countryController.clear();
+    countryController.text = 'USA';
     selectedServiceArea.value = null;
     petNameController.clear();
     petTypeController.clear();
     petSizeController.clear();
-    petDoorTypeController.clear();
-    doorModelController.clear();
-    installationTypeController.clear();
     selectedInstallationSurface.value = null;
     estimatedPriceController.clear();
-    jobNotesController.clear();
     uploadedImages.clear();
     uploadedFiles.clear();
     currentStep.value = 0;

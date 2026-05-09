@@ -30,26 +30,46 @@ class Step1 extends StatelessWidget {
 
         /// Pet Name field
         CustomTextField(
+          label: 'Customer Name',
+          star: ' *',
+          placeholder: 'Enter customer name',
+          controller: controller.customerNameController,
+        ),
+        SizedBox(height: 16.h),
+        CustomTextField(
+          label: 'Email',
+          star: ' *',
+          placeholder: 'Enter email',
+          controller: controller.emailController,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        SizedBox(height: 16.h),
+        CustomTextField(
+          label: 'Phone',
+          star: ' *',
+          placeholder: 'Enter phone number',
+          controller: controller.phoneController,
+          keyboardType: TextInputType.phone,
+        ),
+        SizedBox(height: 16.h),
+        CustomTextField(
           label: AppStrings.petName,
+          star: ' *',
           placeholder: AppStrings.petNamePlaceholder,
           controller: controller.petNameController,
         ),
         SizedBox(height: 16.h),
 
-        // CustomTextField(
-        //   label: 'Adjust Price',
-        //   placeholder: '\$ Enter the price',
-        //   controller: controller.priceController,
-        // ),
-        // SizedBox(height: 16.h),
         CustomTextField(
           label: AppStrings.type,
+          star: ' *',
           placeholder: AppStrings.typePlaceholder,
           controller: controller.typeController,
         ),
         SizedBox(height: 16.h),
         CustomTextField(
           label: AppStrings.size,
+          star: ' *',
           placeholder: AppStrings.sizePlaceholder,
           controller: controller.sizeController,
         ),

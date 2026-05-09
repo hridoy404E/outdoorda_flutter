@@ -77,6 +77,39 @@ class InstallerPaymentApiService {
     return InstallerCommissionPaymentResult.fromResponse(response.responseData);
   }
 
+  Future<void> notifyStripeManualWebhook({
+    required String paymentId,
+    required bool status,
+  }) async {
+    final uri = Uri.parse(ApiEndpoints.stripeManualWebhook).replace(
+      queryParameters: {
+        'payment_id': paymentId,
+        'status': status.toString(),
+      },
+    );
+
+    final response = await _networkCaller.postRequest(
+      uri.toString(),
+      headers: {'accept': 'application/json'},
+      body: const {},
+    );
+
+    AppLoggerHelper.debug(
+      'InstallerPaymentApiService.notifyStripeManualWebhook: '
+      'status=${response.statusCode} success=${response.isSuccess} '
+      'paymentId=$paymentId webhookStatus=$status body=${response.responseData}',
+    );
+
+    if (!_isSuccessfulResponse(response)) {
+      throw Exception(
+        _extractErrorMessage(
+          response.responseData,
+          fallback: response.errorMessage,
+        ),
+      );
+    }
+  }
+
   List<dynamic> _extractPaymentList(dynamic data) {
     if (data is List) return data;
     if (data is Map) {

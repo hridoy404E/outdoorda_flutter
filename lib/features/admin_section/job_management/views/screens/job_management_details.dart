@@ -228,8 +228,7 @@ class JobManagementDetailsScreen extends StatelessWidget {
           _buildAddressRow('Address Line 2', job.addressLine2),
           _buildAddressRow('City', job.city),
           _buildAddressRow('State', job.state),
-          _buildAddressRow('Zip Code', job.zipCode),
-          _buildAddressRow('Country', job.country, isLast: true),
+          _buildAddressRow('Zip Code', job.zipCode, isLast: true),
         ],
       ),
     );

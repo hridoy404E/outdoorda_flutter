@@ -4,7 +4,7 @@ class StripeConfig {
   static const String publishableKey = String.fromEnvironment(
     'STRIPE_PUBLISHABLE_KEY',
     defaultValue:
-        'pk_test_51TJr9jKp2PreO93W4yGrHTj0yPXqICAiQy6p8CIWojxDOKsjeOkN5so0WRPkgSuJTqSH4bs2tmimSwgg6nHZvE3S00MfnKMOO5',
+        'pk_live_51ICfltKRxWcMtHxmlHVF8blMcimsdVpRiY0v909YwWDh0mKsd46qIaILeDK2Z1MQvQJeScIfkjd72Yk5ad4ubt3Y00XZ58Q4zk',
   );
 
   static const String merchantDisplayName = 'Outdoorda';

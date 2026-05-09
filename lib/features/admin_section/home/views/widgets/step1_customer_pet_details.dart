@@ -28,14 +28,14 @@ class Step1CustomerPetDetails extends StatelessWidget {
 
         /// Customer Name
         JobInputField(
-          label: AppStrings.customerName,
+          label: "${AppStrings.customerName}* ",
           controller: controller.customerNameController,
         ),
         SizedBox(height: 16.h),
 
         /// Email
         JobInputField(
-          label: AppStrings.email,
+          label: "${AppStrings.email}* ",
           controller: controller.emailController,
           keyboardType: TextInputType.emailAddress,
         ),
@@ -43,21 +43,14 @@ class Step1CustomerPetDetails extends StatelessWidget {
 
         /// Phone
         JobInputField(
-          label: AppStrings.phone,
+          label: "${AppStrings.phone}* ",
           controller: controller.phoneController,
           keyboardType: TextInputType.phone,
         ),
         SizedBox(height: 16.h),
 
-        /// Installation Address
         JobInputField(
-          label: AppStrings.installationAddress,
-          controller: controller.addressController,
-        ),
-        SizedBox(height: 16.h),
-
-        JobInputField(
-          label: 'Address Line 1',
+          label: 'Address Line 1*',
           controller: controller.addressLine1Controller,
         ),
         SizedBox(height: 16.h),
@@ -68,22 +61,16 @@ class Step1CustomerPetDetails extends StatelessWidget {
         ),
         SizedBox(height: 16.h),
 
-        JobInputField(label: 'City', controller: controller.cityController),
+        JobInputField(label: 'City*', controller: controller.cityController),
         SizedBox(height: 16.h),
 
-        JobInputField(label: 'State', controller: controller.stateController),
+        JobInputField(label: 'State*', controller: controller.stateController),
         SizedBox(height: 16.h),
 
         JobInputField(
-          label: 'Zip Code',
+          label: 'Zip Code*',
           controller: controller.zipCodeController,
           keyboardType: TextInputType.number,
-        ),
-        SizedBox(height: 16.h),
-
-        JobInputField(
-          label: 'Country',
-          controller: controller.countryController,
         ),
         SizedBox(height: 16.h),
 
@@ -93,21 +80,21 @@ class Step1CustomerPetDetails extends StatelessWidget {
 
         /// Pet Name
         JobInputField(
-          label: AppStrings.petName,
+          label: '${AppStrings.petName}*',
           controller: controller.petNameController,
         ),
         SizedBox(height: 16.h),
 
         /// Pet Type
         JobInputField(
-          label: AppStrings.petType,
+          label: '${AppStrings.petType}*',
           controller: controller.petTypeController,
         ),
         SizedBox(height: 16.h),
 
         /// Pet Size
         JobInputField(
-          label: AppStrings.petSize,
+          label: '${AppStrings.petSize}*',
           controller: controller.petSizeController,
         ),
         SizedBox(height: 24.h),

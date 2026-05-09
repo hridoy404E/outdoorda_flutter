@@ -15,6 +15,7 @@ class JobDetailsCard extends StatelessWidget {
     final totalPrice = job?.adminEstimatedPrice ?? 0;
     final commission = totalPrice * 0.20;
     final yourPrice = totalPrice - commission;
+    final shortLocation = _shortLocation(job);
 
     return Container(
       padding: EdgeInsets.all(16.r),
@@ -60,7 +61,7 @@ class JobDetailsCard extends StatelessWidget {
           ),
           SizedBox(height: 6.h),
           Text(
-            job?.location ?? '',
+            shortLocation,
             style: figtreeTextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.w600, // SemiBold
@@ -221,5 +222,23 @@ class JobDetailsCard extends StatelessWidget {
       return '\$${value.toStringAsFixed(0)}';
     }
     return '\$${value.toStringAsFixed(2)}';
+  }
+
+  String _shortLocation(ManagementJob? job) {
+    if (job == null) return '-';
+
+    final parts = <String>[
+      job.city.trim(),
+      job.state.trim(),
+    ].where((e) => e.isNotEmpty).toList();
+
+    if (parts.isNotEmpty) return parts.join(', ');
+
+    final addressLine1 = job.addressLine1.trim();
+    if (addressLine1.isNotEmpty) return addressLine1;
+
+    final fallback = job.location.trim();
+    if (fallback.isNotEmpty) return fallback;
+    return '-';
   }
 }

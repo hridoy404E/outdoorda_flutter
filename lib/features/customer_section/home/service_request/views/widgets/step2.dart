@@ -130,9 +130,38 @@ class Step2 extends StatelessWidget {
                   SizedBox(height: 24.h),
 
                   CustomTextField(
-                    label: AppStrings.address,
-                    placeholder: AppStrings.addressPlaceholder,
-                    controller: controller.addressController,
+                    label: 'Address Line 1',
+                    star: ' *',
+                    placeholder: 'Enter address line 1',
+                    controller: controller.addressLine1Controller,
+                  ),
+                  SizedBox(height: 16.h),
+                  CustomTextField(
+                    label: 'Address Line 2',
+                    placeholder: 'Enter address line 2',
+                    controller: controller.addressLine2Controller,
+                  ),
+                  SizedBox(height: 16.h),
+                  CustomTextField(
+                    label: 'City',
+                    star: ' *',
+                    placeholder: 'Enter city',
+                    controller: controller.cityController,
+                  ),
+                  SizedBox(height: 16.h),
+                  CustomTextField(
+                    label: 'State',
+                    star: ' *',
+                    placeholder: 'Enter state',
+                    controller: controller.stateController,
+                  ),
+                  SizedBox(height: 16.h),
+                  CustomTextField(
+                    label: 'Zip Code',
+                    star: ' *',
+                    placeholder: 'Enter zip code',
+                    controller: controller.zipCodeController,
+                    keyboardType: TextInputType.number,
                   ),
                   SizedBox(height: 24.h),
 

@@ -56,6 +56,7 @@ class InstallerCommissionPaymentController extends GetxController {
     }
 
     final method = selectedMethod.value;
+    String? stripePaymentId;
 
     try {
       isPaying.value = true;
@@ -72,6 +73,7 @@ class InstallerCommissionPaymentController extends GetxController {
       );
 
       if (method == InstallerCommissionPaymentMethod.stripe) {
+        stripePaymentId = result.payment?.id.trim();
         final clientSecret = result.clientSecret?.trim();
         if (clientSecret == null || clientSecret.isEmpty) {
           throw Exception('Stripe client secret missing from payment response');
@@ -80,6 +82,10 @@ class InstallerCommissionPaymentController extends GetxController {
         await _stripePaymentService.payWithPaymentSheet(
           clientSecret: clientSecret,
         );
+
+        if (stripePaymentId != null && stripePaymentId.isNotEmpty) {
+          await _notifyStripeWebhook(paymentId: stripePaymentId, status: true);
+        }
       }
 
       EasyLoading.dismiss();
@@ -91,6 +97,7 @@ class InstallerCommissionPaymentController extends GetxController {
       _refreshDependentData();
       Get.back();
     } on PaymentCancelledException {
+      await _notifyStripeWebhook(paymentId: stripePaymentId, status: false);
       EasyLoading.dismiss();
       EasyLoading.showInfo(AppStrings.paymentCancelled);
     } on StripeException catch (error) {
@@ -98,10 +105,14 @@ class InstallerCommissionPaymentController extends GetxController {
         'Installer Stripe commission payment failed',
         error,
       );
+      await _notifyStripeWebhook(paymentId: stripePaymentId, status: false);
       EasyLoading.dismiss();
       EasyLoading.showError(AppStrings.paymentFailed);
     } catch (error) {
       AppLoggerHelper.error('Installer commission payment failed', error);
+      if (method == InstallerCommissionPaymentMethod.stripe) {
+        await _notifyStripeWebhook(paymentId: stripePaymentId, status: false);
+      }
       EasyLoading.dismiss();
       EasyLoading.showError('Failed to submit commission payment');
     } finally {
@@ -131,6 +142,26 @@ class InstallerCommissionPaymentController extends GetxController {
   void _refreshDependentData() {
     if (Get.isRegistered<InstallerPaymentDetailsController>()) {
       Get.find<InstallerPaymentDetailsController>().refreshPayments();
+    }
+  }
+
+  Future<void> _notifyStripeWebhook({
+    required String? paymentId,
+    required bool status,
+  }) async {
+    final cleanedPaymentId = paymentId?.trim() ?? '';
+    if (cleanedPaymentId.isEmpty) return;
+
+    try {
+      await _paymentApiService.notifyStripeManualWebhook(
+        paymentId: cleanedPaymentId,
+        status: status,
+      );
+    } catch (error) {
+      AppLoggerHelper.error(
+        'Failed to notify installer Stripe manual webhook',
+        error,
+      );
     }
   }
 

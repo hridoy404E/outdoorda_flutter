@@ -22,11 +22,9 @@ class AdminCreatePostApiService {
     required String installationSurface,
     required String price,
     required int serviceAreaId,
-    required String jobNotes,
     required String petName,
     required String custIds,
     required String custEmail,
-    required String address,
     required String addressLine1,
     required String addressLine2,
     required String city,
@@ -57,9 +55,6 @@ class AdminCreatePostApiService {
         ),
       );
     }
-
-    final trimmedJobNotes = jobNotes.trim();
-
     final response = await _networkCaller.multipartRequest(
       ApiEndpoints.adminPostsAdmin,
       token: authorization,
@@ -73,17 +68,14 @@ class AdminCreatePostApiService {
         'pet_name': petName,
         'inst_ids': custIds,
         'cust_email': custEmail,
-        'address': address,
         'address_line_1': addressLine1,
-        'address_line_2': addressLine2,
+        if (addressLine2.trim().isNotEmpty) 'address_line_2': addressLine2,
         'city': city,
         'state': state,
         'zip_code': zipCode,
         'country': country,
         'cust_name': custName,
         'pet_type': petType,
-        if (trimmedJobNotes.isNotEmpty) 'note': trimmedJobNotes,
-        if (trimmedJobNotes.isNotEmpty) 'job_notes': trimmedJobNotes,
       },
       files: files,
       method: 'POST',
