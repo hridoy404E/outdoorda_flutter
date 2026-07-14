@@ -82,7 +82,7 @@ class ManagementItemCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 330.w,
+        width: double.infinity,
         padding: EdgeInsets.all(20.r),
         decoration: BoxDecoration(
           color: const Color(0xFFEBEFF1), // #ebeff1

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -74,11 +75,17 @@ class CreateNewJobController extends GetxController {
   final RxBool isInstallerDropdownExpanded = true.obs;
   final RxBool isSubmittingJob = false.obs;
 
+  /// Draft state — IDs to re-select after async list loads.
+  String? _draftServiceAreaId;
+  List<String> _draftInstallerIds = [];
+  bool _jobSubmittedSuccessfully = false;
+
   @override
   void onInit() {
     super.onInit();
     pageController = PageController();
     countryController.text = 'USA';
+    _restoreDraft();
     _loadServiceAreas();
     _loadInstallers();
     AppLoggerHelper.info('CreateNewJobController initialized');
@@ -86,6 +93,10 @@ class CreateNewJobController extends GetxController {
 
   @override
   void onClose() {
+    // Only save draft if the job was NOT just submitted successfully.
+    if (!_jobSubmittedSuccessfully) {
+      _saveDraft();
+    }
     pageController.dispose();
     customerNameController.dispose();
     emailController.dispose();
@@ -463,6 +474,7 @@ class CreateNewJobController extends GetxController {
 
       AppLoggerHelper.info('Job created successfully via admin posts-admin');
       EasyLoading.showSuccess('Job created successfully!');
+      _jobSubmittedSuccessfully = true;
       _clearForm();
       Get.back(result: true);
     } catch (error) {
@@ -474,7 +486,7 @@ class CreateNewJobController extends GetxController {
     }
   }
 
-  /// Clear form data
+  /// Clear form data and remove persisted draft.
   void _clearForm() {
     customerNameController.clear();
     emailController.clear();
@@ -499,6 +511,124 @@ class CreateNewJobController extends GetxController {
       installer.isSelected = false;
     }
     installers.refresh();
+
+    // Remove persisted draft from local storage.
+    StorageService.clearJobDraft();
+    _draftServiceAreaId = null;
+    _draftInstallerIds = [];
+    AppLoggerHelper.info('Job draft cleared');
+  }
+
+  // ── Draft Persistence ───────────────────────────────────────────────────
+
+  /// Serialize current form state to JSON and persist to local storage.
+  void _saveDraft() {
+    // Don't save if the form is completely empty.
+    if (!_hasDraftData) {
+      StorageService.clearJobDraft();
+      return;
+    }
+
+    final draft = <String, dynamic>{
+      'currentStep': currentStep.value,
+      'customerName': customerNameController.text,
+      'email': emailController.text,
+      'phone': phoneController.text,
+      'addressLine1': addressLine1Controller.text,
+      'addressLine2': addressLine2Controller.text,
+      'city': cityController.text,
+      'state': stateController.text,
+      'zipCode': zipCodeController.text,
+      'country': countryController.text,
+      'petName': petNameController.text,
+      'petType': petTypeController.text,
+      'petSize': petSizeController.text,
+      'serviceAreaId': selectedServiceArea.value?.id,
+      'installationSurface': selectedInstallationSurface.value,
+      'estimatedPrice': estimatedPriceController.text,
+      'selectedInstallerIds': installers
+          .where((i) => i.isSelected)
+          .map((i) => i.id)
+          .toList(),
+    };
+
+    try {
+      StorageService.saveJobDraft(jsonEncode(draft));
+      AppLoggerHelper.info('Job draft saved');
+    } catch (e) {
+      AppLoggerHelper.error('Failed to save job draft', e);
+    }
+  }
+
+  /// Restore form state from a previously persisted draft.
+  void _restoreDraft() {
+    final jsonString = StorageService.getJobDraft();
+    if (jsonString == null || jsonString.isEmpty) return;
+
+    try {
+      final draft = jsonDecode(jsonString) as Map<String, dynamic>;
+
+      customerNameController.text = draft['customerName'] as String? ?? '';
+      emailController.text = draft['email'] as String? ?? '';
+      phoneController.text = draft['phone'] as String? ?? '';
+      addressLine1Controller.text = draft['addressLine1'] as String? ?? '';
+      addressLine2Controller.text = draft['addressLine2'] as String? ?? '';
+      cityController.text = draft['city'] as String? ?? '';
+      stateController.text = draft['state'] as String? ?? '';
+      zipCodeController.text = draft['zipCode'] as String? ?? '';
+      countryController.text = draft['country'] as String? ?? 'USA';
+      petNameController.text = draft['petName'] as String? ?? '';
+      petTypeController.text = draft['petType'] as String? ?? '';
+      petSizeController.text = draft['petSize'] as String? ?? '';
+      estimatedPriceController.text =
+          draft['estimatedPrice'] as String? ?? '';
+
+      selectedInstallationSurface.value =
+          draft['installationSurface'] as String?;
+
+      // Store IDs to re-select after async loads complete.
+      final areaId = draft['serviceAreaId'];
+      _draftServiceAreaId = areaId?.toString();
+
+      final ids = draft['selectedInstallerIds'];
+      if (ids is List) {
+        _draftInstallerIds = ids.map((e) => e.toString()).toList();
+      }
+
+      // Restore step index (jump to the page the user was on).
+      final step = draft['currentStep'] as int? ?? 0;
+      currentStep.value = step;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (pageController.hasClients && step > 0) {
+          pageController.jumpToPage(step);
+        }
+      });
+
+      AppLoggerHelper.info('Job draft restored');
+      EasyLoading.showInfo('Draft restored');
+    } catch (e) {
+      AppLoggerHelper.error('Failed to restore job draft', e);
+      // If the draft is corrupted, remove it so it doesn't block future use.
+      StorageService.clearJobDraft();
+    }
+  }
+
+  /// Returns true if any text field contains non-empty user data.
+  bool get _hasDraftData {
+    return customerNameController.text.trim().isNotEmpty ||
+        emailController.text.trim().isNotEmpty ||
+        phoneController.text.trim().isNotEmpty ||
+        addressLine1Controller.text.trim().isNotEmpty ||
+        addressLine2Controller.text.trim().isNotEmpty ||
+        cityController.text.trim().isNotEmpty ||
+        stateController.text.trim().isNotEmpty ||
+        zipCodeController.text.trim().isNotEmpty ||
+        petNameController.text.trim().isNotEmpty ||
+        petTypeController.text.trim().isNotEmpty ||
+        petSizeController.text.trim().isNotEmpty ||
+        estimatedPriceController.text.trim().isNotEmpty ||
+        selectedInstallationSurface.value != null ||
+        selectedServiceArea.value != null;
   }
 
   Future<void> _loadServiceAreas() async {
@@ -517,6 +647,20 @@ class CreateNewJobController extends GetxController {
       AppLoggerHelper.info(
         'Loaded service areas for create job: ${serviceAreas.length}',
       );
+
+      // Re-select the service area from draft if available.
+      if (_draftServiceAreaId != null) {
+        final match = serviceAreas.firstWhereOrNull(
+          (a) => a.id.toString() == _draftServiceAreaId,
+        );
+        if (match != null) {
+          selectedServiceArea.value = match;
+          AppLoggerHelper.debug(
+            'Draft service area re-selected: ${match.name}',
+          );
+        }
+        _draftServiceAreaId = null;
+      }
     } catch (error) {
       AppLoggerHelper.error(
         'Failed to load service areas for create job',
@@ -574,6 +718,20 @@ class CreateNewJobController extends GetxController {
       AppLoggerHelper.info(
         'Loaded installers for create job: ${installers.length}',
       );
+
+      // Re-select installers from draft if available.
+      if (_draftInstallerIds.isNotEmpty) {
+        for (final installer in installers) {
+          if (_draftInstallerIds.contains(installer.id)) {
+            installer.isSelected = true;
+          }
+        }
+        installers.refresh();
+        AppLoggerHelper.debug(
+          'Draft installers re-selected: ${_draftInstallerIds.length}',
+        );
+        _draftInstallerIds = [];
+      }
     } catch (error) {
       AppLoggerHelper.error('Failed to load installers for create job', error);
       EasyLoading.showError('Failed to load installer list');

@@ -24,7 +24,7 @@ class UserCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 330.w,
+      width: double.infinity,
       decoration: BoxDecoration(
         color: AppColors.settingsCardBg,
         borderRadius: BorderRadius.circular(24.r),

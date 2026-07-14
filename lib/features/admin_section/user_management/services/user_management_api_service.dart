@@ -12,12 +12,25 @@ class UserManagementApiService {
     required String authorization,
     required int offset,
     required int limit,
+    String? role,
+    String? search,
   }) async {
+    final Map<String, dynamic> queryParams = {
+      'offset': offset,
+      'limit': limit,
+    };
+    if (role != null && role.isNotEmpty) {
+      queryParams['role'] = role;
+    }
+    if (search != null && search.isNotEmpty) {
+      queryParams['search'] = search;
+    }
+
     final response = await _networkCaller.getRequest(
       ApiEndpoints.users,
       token: authorization,
       headers: {'accept': 'application/json'},
-      queryParams: {'offset': offset, 'limit': limit},
+      queryParams: queryParams,
     );
 
     AppLoggerHelper.debug(
@@ -25,6 +38,7 @@ class UserManagementApiService {
       'status=${response.statusCode} '
       'success=${response.isSuccess} '
       'offset=$offset limit=$limit '
+      'role=$role search=$search '
       'body=${response.responseData}',
     );
 

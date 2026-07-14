@@ -37,6 +37,9 @@ class AdminHomeController extends GetxController {
   // Loading state
   final RxBool isLoading = false.obs;
 
+  // Welcome card visibility state
+  final RxBool isWelcomeCardVisible = true.obs;
+
   @override
   void onInit() {
     super.onInit();

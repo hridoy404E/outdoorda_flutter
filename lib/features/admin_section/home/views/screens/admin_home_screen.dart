@@ -38,9 +38,18 @@ class AdminHomeScreen extends StatelessWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
             children: [
-              // Welcome Back card
-              _buildWelcomeCard(),
-              SizedBox(height: 20.h),
+              // Welcome Back card (controlled by visibility state)
+              Obx(() {
+                if (!controller.isWelcomeCardVisible.value) {
+                  return const SizedBox.shrink();
+                }
+                return Column(
+                  children: [
+                    _buildWelcomeCard(controller),
+                    SizedBox(height: 20.h),
+                  ],
+                );
+              }),
 
               // KPI Metrics (4 cards in 2 rows)
               _buildKPIMetrics(controller),
@@ -88,20 +97,20 @@ class AdminHomeScreen extends StatelessWidget {
   }
 
   Widget _buildShimmerWelcomeCard() {
-    return ShimmerPlaceholder(
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 24.h),
-        decoration: BoxDecoration(
-          color: const Color(0xFF9CB2C1),
-          borderRadius: BorderRadius.circular(24.r),
-        ),
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+      decoration: BoxDecoration(
+        color: const Color(0xFF9CB2C1),
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: ShimmerPlaceholder(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildShimmerBlock(height: 24.h, width: 180.w),
-            SizedBox(height: 10.h),
-            _buildShimmerBlock(height: 14.h, width: 240.w),
+            _buildShimmerBlock(height: 20.h, width: 180.w),
+            SizedBox(height: 4.h),
+            _buildShimmerBlock(height: 12.h, width: 240.w),
           ],
         ),
       ),
@@ -131,14 +140,14 @@ class AdminHomeScreen extends StatelessWidget {
   }
 
   Widget _buildShimmerKPICard() {
-    return ShimmerPlaceholder(
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10.r),
-          border: Border.all(color: const Color(0xFFEBEFF1), width: 1),
-        ),
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: const Color(0xFFEBEFF1), width: 1),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+      child: ShimmerPlaceholder(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -154,14 +163,14 @@ class AdminHomeScreen extends StatelessWidget {
   }
 
   Widget _buildShimmerPrimaryActionButton() {
-    return ShimmerPlaceholder(
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-        decoration: BoxDecoration(
-          color: const Color(0xFF87ABC0),
-          borderRadius: BorderRadius.circular(8.r),
-        ),
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: const Color(0xFF87ABC0),
+        borderRadius: BorderRadius.circular(8.r),
+      ),
+      child: ShimmerPlaceholder(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -175,17 +184,17 @@ class AdminHomeScreen extends StatelessWidget {
   }
 
   Widget _buildShimmerSecondaryActionButton() {
-    return ShimmerPlaceholder(
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8.r),
-          border: Border.all(
-            color: AppColors.gradientEnd.withValues(alpha: 0.4),
-          ),
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(
+          color: AppColors.gradientEnd.withValues(alpha: 0.4),
         ),
+      ),
+      child: ShimmerPlaceholder(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -213,17 +222,17 @@ class AdminHomeScreen extends StatelessWidget {
   }
 
   Widget _buildShimmerRecentJobCard() {
-    return ShimmerPlaceholder(
-      child: Container(
-        width: 330.w,
-        padding: EdgeInsets.all(20.r),
-        decoration: BoxDecoration(
-          color: const Color(0xFFEBEFF1),
-          borderRadius: BorderRadius.circular(24.r),
-          border: Border(
-            left: BorderSide(color: const Color(0xFF6FAACC), width: 1.w),
-          ),
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(20.r),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEBEFF1),
+        borderRadius: BorderRadius.circular(24.r),
+        border: Border(
+          left: BorderSide(color: const Color(0xFF6FAACC), width: 1.w),
         ),
+      ),
+      child: ShimmerPlaceholder(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -257,32 +266,32 @@ class AdminHomeScreen extends StatelessWidget {
   }
 
   Widget _buildShimmerRecentActivitySection() {
-    return ShimmerPlaceholder(
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(10.r),
-        decoration: BoxDecoration(
-          color: AppColors.bg,
-          borderRadius: BorderRadius.circular(24.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 24,
-              offset: const Offset(0, 0),
-            ),
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(10.r),
+      decoration: BoxDecoration(
+        color: AppColors.bg,
+        borderRadius: BorderRadius.circular(24.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 0),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ShimmerPlaceholder(
+            child: _buildShimmerBlock(height: 22.h, width: 160.w),
+          ),
+          SizedBox(height: 16.h),
+          for (int i = 0; i < 3; i++) ...[
+            _buildShimmerActivityItem(),
+            if (i != 2) SizedBox(height: 16.h),
           ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildShimmerBlock(height: 22.h, width: 160.w),
-            SizedBox(height: 16.h),
-            for (int i = 0; i < 3; i++) ...[
-              _buildShimmerActivityItem(),
-              if (i != 2) SizedBox(height: 16.h),
-            ],
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -298,28 +307,30 @@ class AdminHomeScreen extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(18.r),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildShimmerBlock(height: 14.r, width: 14.r, radius: 999.r),
-              SizedBox(width: 8.w),
-              Expanded(
-                child: Column(
-                  children: [
-                    _buildShimmerBlock(height: 14.h, width: double.infinity),
-                    SizedBox(height: 8.h),
-                    _buildShimmerBlock(height: 14.h, width: 180.w),
-                  ],
+      child: ShimmerPlaceholder(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildShimmerBlock(height: 14.r, width: 14.r, radius: 999.r),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: Column(
+                    children: [
+                      _buildShimmerBlock(height: 14.h, width: double.infinity),
+                      SizedBox(height: 8.h),
+                      _buildShimmerBlock(height: 14.h, width: 180.w),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: 10.h),
-          _buildShimmerBlock(height: 14.h, width: 96.w),
-        ],
+              ],
+            ),
+            SizedBox(height: 10.h),
+            _buildShimmerBlock(height: 14.h, width: 96.w),
+          ],
+        ),
       ),
     );
   }
@@ -376,11 +387,11 @@ class AdminHomeScreen extends StatelessWidget {
     );
   }
 
-  /// Welcome Back card with gradient background
-  Widget _buildWelcomeCard() {
+  /// Welcome Back card with gradient background and close button
+  Widget _buildWelcomeCard(AdminHomeController controller) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 24.h),
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topCenter,
@@ -390,7 +401,7 @@ class AdminHomeScreen extends StatelessWidget {
             Color(0xFF395C70),
           ],
         ),
-        borderRadius: BorderRadius.circular(24.r),
+        borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF0073C5).withValues(alpha: 0.2),
@@ -399,24 +410,43 @@ class AdminHomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Text(
-            AppStrings.welcomeBackExclamation,
-            style: figtreeTextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppStrings.welcomeBackExclamation,
+                style: figtreeTextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 4.h),
+              Padding(
+                padding: EdgeInsets.only(right: 28.w), // prevent text overlap with close button
+                child: Text(
+                  AppStrings.businessOverview,
+                  style: figtreeTextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 8.h),
-          Text(
-            AppStrings.businessOverview,
-            style: figtreeTextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
+          Positioned(
+            top: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: () => controller.isWelcomeCardVisible.value = false,
+              child: Icon(
+                Icons.close,
+                color: Colors.white.withValues(alpha: 0.8),
+                size: 20.r,
+              ),
             ),
           ),
         ],

@@ -43,7 +43,9 @@ class AdminInstallerPayment {
 
   bool get isRejected {
     final normalized = status.trim().toLowerCase().replaceAll('_', ' ');
-    return normalized == 'rejected' || normalized == 'not received';
+    return normalized == 'rejected' ||
+        normalized == 'reject' ||
+        normalized == 'not received';
   }
 
   bool get isFailed {

@@ -7,6 +7,7 @@ import 'package:outdoorda_flutter/features/installer_section/management/controll
 import 'package:outdoorda_flutter/features/installer_section/management/models/management_job.dart';
 import 'package:outdoorda_flutter/features/installer_section/management/services/installer_management_api_service.dart';
 import 'package:outdoorda_flutter/features/installer_section/management/views/widgets/adjust_bid_widget.dart';
+import 'package:outdoorda_flutter/features/installer_section/settings/controllers/installer_setting_controller.dart';
 
 /// Controller for management details screen
 /// Handles job details display and job progress tracking
@@ -555,6 +556,10 @@ class ManagementDetailsController extends GetxController {
   Future<void> _refreshManagementListIfNeeded() async {
     if (Get.isRegistered<InstallerManagementController>()) {
       await Get.find<InstallerManagementController>().refreshJobs();
+    }
+    // Refresh user profile (user/me) so the home screen shows updated data.
+    if (Get.isRegistered<InstallerSettingController>()) {
+      Get.find<InstallerSettingController>().refreshUserProfile();
     }
   }
 

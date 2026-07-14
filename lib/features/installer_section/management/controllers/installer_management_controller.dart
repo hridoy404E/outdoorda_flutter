@@ -22,6 +22,9 @@ class InstallerManagementController extends GetxController {
   final RxBool isEarningsLoading = true.obs;
   final RxString loadJobsError = ''.obs;
 
+  // Balance visibility toggle (shared across the screen)
+  final RxBool isBalanceVisible = true.obs;
+
   // Monthly statistics
   final RxInt completedCount = 0.obs;
   final RxInt inProgressCount = 0.obs;

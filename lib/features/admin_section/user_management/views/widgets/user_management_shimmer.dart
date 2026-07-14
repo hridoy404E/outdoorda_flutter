@@ -4,7 +4,9 @@ import 'package:outdoorda_flutter/core/common/widgets/shimmer_placeholder.dart';
 import 'package:outdoorda_flutter/core/utils/constants/colors.dart';
 
 class UserManagementShimmer extends StatelessWidget {
-  const UserManagementShimmer({super.key});
+  const UserManagementShimmer({super.key, this.isInstaller = true});
+
+  final bool isInstaller;
 
   @override
   Widget build(BuildContext context) {
@@ -13,27 +15,29 @@ class UserManagementShimmer extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
       itemCount: 4,
       separatorBuilder: (context, index) => SizedBox(height: 16.h),
-      itemBuilder: (context, index) => const _UserCardShimmer(),
+      itemBuilder: (context, index) => _UserCardShimmer(isInstaller: isInstaller),
     );
   }
 }
 
 class _UserCardShimmer extends StatelessWidget {
-  const _UserCardShimmer();
+  const _UserCardShimmer({required this.isInstaller});
+
+  final bool isInstaller;
 
   @override
   Widget build(BuildContext context) {
-    return ShimmerPlaceholder(
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: AppColors.settingsCardBg,
-          borderRadius: BorderRadius.circular(24.r),
-          border: Border(
-            left: BorderSide(color: AppColors.gradientStart, width: 1.w),
-          ),
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColors.settingsCardBg,
+        borderRadius: BorderRadius.circular(24.r),
+        border: Border(
+          left: BorderSide(color: AppColors.gradientStart, width: 1.w),
         ),
-        padding: EdgeInsets.all(20.r),
+      ),
+      padding: EdgeInsets.all(20.r),
+      child: ShimmerPlaceholder(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -127,6 +131,32 @@ class _UserCardShimmer extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6.r),
                   ),
                 ),
+              ],
+            ),
+            SizedBox(height: 14.h),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 40.h,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE0E0E0),
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                  ),
+                ),
+                if (isInstaller) ...[
+                  SizedBox(width: 10.w),
+                  Expanded(
+                    child: Container(
+                      height: 40.h,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE0E0E0),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ],

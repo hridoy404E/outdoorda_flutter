@@ -10,6 +10,7 @@ import 'package:outdoorda_flutter/core/services/two_factor_api_service.dart';
 import 'package:outdoorda_flutter/core/services/user_profile_api_service.dart';
 import 'package:outdoorda_flutter/core/utils/constants/app_strings.dart';
 import 'package:outdoorda_flutter/core/utils/logging/logger.dart';
+import 'package:outdoorda_flutter/core/utils/helpers/app_helper.dart';
 import 'package:outdoorda_flutter/core/utils/validators/app_validator.dart';
 import 'package:outdoorda_flutter/features/global_section/authentication/auth_api_services/auth_api_service.dart';
 import 'package:outdoorda_flutter/features/installer_section/management/controllers/installer_management_controller.dart';
@@ -501,7 +502,6 @@ class InstallerSettingController extends GetxController {
     }
   }
 
-  /// Change profile photo
   Future<void> changeProfilePhoto() async {
     try {
       final ImagePicker picker = ImagePicker();
@@ -512,10 +512,15 @@ class InstallerSettingController extends GetxController {
 
       if (image == null) return;
 
-      profileImagePath.value = image.path;
-      AppLoggerHelper.info('Installer profile photo selected: ${image.path}');
+      EasyLoading.show(status: 'Processing photo...');
+      final compressedPath = await AppHelperFunctions.compressImageIfNeeded(image.path);
+      profileImagePath.value = compressedPath;
+      EasyLoading.dismiss();
+
+      AppLoggerHelper.info('Installer profile photo selected: $compressedPath');
       EasyLoading.showInfo('Photo selected. Tap Save Profile Changes.');
     } catch (error) {
+      EasyLoading.dismiss();
       AppLoggerHelper.error('Failed to change photo', error);
       EasyLoading.showError('Failed to change photo');
     }

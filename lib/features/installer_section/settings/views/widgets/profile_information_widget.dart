@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:outdoorda_flutter/core/common/styles/global_text_style.dart';
@@ -179,6 +180,11 @@ class ProfileInformationWidget extends StatelessWidget {
             controller: controller.phoneController,
             validator: controller.validatePhoneNumber,
             keyboardType: TextInputType.phone,
+            maxLength: 10,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+            ],
+            showCounter: true,
           ),
           SizedBox(height: 24.h),
 

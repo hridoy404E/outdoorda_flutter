@@ -193,6 +193,26 @@ class InstallerManagementScreen extends StatelessWidget {
                     color: const Color(0xFF395C70), // #395c70
                   ),
                 ),
+                const Spacer(),
+                Obx(
+                  () => GestureDetector(
+                    onTap: () =>
+                        controller.isBalanceVisible.value =
+                            !controller.isBalanceVisible.value,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          controller.isBalanceVisible.value
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                          size: 18.r,
+                          color: const Color(0xFF395C70),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
             SizedBox(height: 12.h),
@@ -233,35 +253,43 @@ class InstallerManagementScreen extends StatelessWidget {
             SizedBox(height: 14.h),
             Container(height: 1.h, color: const Color(0xFFEBEFF1)),
             SizedBox(height: 14.h),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatColumn(
-                    value: formatter.format(controller.totalEarned.value),
-                    label: 'Total Money',
-                    isLoading: controller.isEarningsLoading.value,
-                    shimmerWidth: 64.w,
+            Obx(
+              () => Row(
+                children: [
+                  Expanded(
+                    child: _buildStatColumn(
+                      value: controller.isBalanceVisible.value
+                          ? formatter.format(controller.totalEarned.value)
+                          : '••••',
+                      label: 'Total Money',
+                      isLoading: controller.isEarningsLoading.value,
+                      shimmerWidth: 64.w,
+                    ),
                   ),
-                ),
-                _buildStatDivider(),
-                Expanded(
-                  child: _buildStatColumn(
-                    value: formatter.format(controller.myBalance),
-                    label: 'My Balance',
-                    isLoading: controller.isEarningsLoading.value,
-                    shimmerWidth: 56.w,
+                  _buildStatDivider(),
+                  Expanded(
+                    child: _buildStatColumn(
+                      value: controller.isBalanceVisible.value
+                          ? formatter.format(controller.myBalance)
+                          : '••••',
+                      label: 'My Balance',
+                      isLoading: controller.isEarningsLoading.value,
+                      shimmerWidth: 56.w,
+                    ),
                   ),
-                ),
-                _buildStatDivider(),
-                Expanded(
-                  child: _buildStatColumn(
-                    value: formatter.format(controller.calculatedCommission),
-                    label: 'Commission',
-                    isLoading: controller.isEarningsLoading.value,
-                    shimmerWidth: 64.w,
+                  _buildStatDivider(),
+                  Expanded(
+                    child: _buildStatColumn(
+                      value: controller.isBalanceVisible.value
+                          ? formatter.format(controller.calculatedCommission)
+                          : '••••',
+                      label: 'Commission',
+                      isLoading: controller.isEarningsLoading.value,
+                      shimmerWidth: 64.w,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -273,6 +301,7 @@ class InstallerManagementScreen extends StatelessWidget {
     InstallerSettingController settingController,
   ) {
     final formatter = NumberFormat.currency(symbol: r'$', decimalDigits: 2);
+    final controller = Get.find<InstallerManagementController>();
 
     return Obx(
       () => Container(
@@ -318,11 +347,13 @@ class InstallerManagementScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 3.h),
                       Text(
-                        formatter.format(
-                          settingController
-                              .displayPayableCommissionAmount
-                              .value,
-                        ),
+                        controller.isBalanceVisible.value
+                            ? formatter.format(
+                                settingController
+                                    .displayPayableCommissionAmount
+                                    .value,
+                              )
+                            : '••••',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: figtreeTextStyle(

@@ -1,9 +1,53 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
 
 class AppHelperFunctions{
- AppHelperFunctions._();
+  AppHelperFunctions._();
+
+  /// Compresses an image to under 2 MB if it exceeds that size
+  static Future<String> compressImageIfNeeded(String path) async {
+    final file = File(path);
+    if (!await file.exists()) return path;
+
+    int size = await file.length();
+    // 2 MB in bytes = 2097152
+    const int maxBytes = 2 * 1024 * 1024;
+
+    if (size <= maxBytes) {
+      return path; // Already under 2 MB
+    }
+
+    try {
+      final bytes = await file.readAsBytes();
+      final decodedImage = img.decodeImage(bytes);
+      if (decodedImage == null) return path;
+
+      // Resize the image to maximum 1024 width/height maintaining aspect ratio
+      img.Image resizedImage = decodedImage;
+      if (decodedImage.width > 1024 || decodedImage.height > 1024) {
+        resizedImage = img.copyResize(
+          decodedImage,
+          width: decodedImage.width > decodedImage.height ? 1024 : null,
+          height: decodedImage.height >= decodedImage.width ? 1024 : null,
+        );
+      }
+
+      // Encode as JPG with 70% quality
+      final compressedBytes = img.encodeJpg(resizedImage, quality: 70);
+
+      // Write to temp file
+      final tempDir = Directory.systemTemp;
+      final tempFile = File('${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await tempFile.writeAsBytes(compressedBytes);
+
+      return tempFile.path;
+    } catch (e) {
+      return path;
+    }
+  }
  static void showSnackBar(String message) {
   ScaffoldMessenger.of(Get.context!).showSnackBar(
    SnackBar(content: Text(message)),

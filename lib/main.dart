@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:outdoorda_flutter/core/services/firebase/fcm_handler.dart';
@@ -20,6 +21,7 @@ void main() async {
   FCMHandler.registerBackgroundHandler();
 
   await StorageService.init();
+  await dotenv.load(fileName: ".env");
   Stripe.publishableKey = StripeConfig.publishableKey;
   await Stripe.instance.applySettings();
 

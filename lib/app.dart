@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:outdoorda_flutter/core/common/widgets/outdoorda_upgrade_alert.dart';
 import 'package:outdoorda_flutter/core/utils/constants/colors.dart';
 import 'core/bindings/controller_binder.dart';
 import 'routes/app_routes.dart';
@@ -31,11 +32,22 @@ class Outdoorda extends StatelessWidget {
           builder: (context, widget) {
             widget = EasyLoading.init()(context, widget);
             final mediaQueryData = MediaQuery.of(context);
+
             return MediaQuery(
               data: mediaQueryData.copyWith(
                 textScaler: const TextScaler.linear(1.0),
               ),
-              child: widget,
+              child: OutdoordaUpgradeAlert(
+                navigatorKey: Get.key,
+                barrierDismissible: true,
+                showIgnore: true,
+                showLater: true,
+                upgrader: OutdoordaUpgrader(
+                  debugDisplayAlways: false,
+                  debugLogging: false,
+                ),
+                child: widget,
+              ),
             );
           },
         );

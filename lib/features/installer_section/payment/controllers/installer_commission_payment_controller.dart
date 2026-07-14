@@ -27,7 +27,7 @@ class InstallerCommissionPaymentController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _prefillPayableCommission();
+    _refreshAndPrefill();
   }
 
   @override
@@ -38,6 +38,23 @@ class InstallerCommissionPaymentController extends GetxController {
 
   void selectMethod(InstallerCommissionPaymentMethod method) {
     selectedMethod.value = method;
+  }
+
+  /// Refresh user/me profile first, then prefill the payable commission.
+  Future<void> _refreshAndPrefill() async {
+    if (!Get.isRegistered<InstallerSettingController>()) return;
+    final settingCtrl = Get.find<InstallerSettingController>();
+
+    try {
+      await settingCtrl.refreshUserProfile();
+    } catch (_) {
+      // Profile refresh failed — still try to prefill from cached data.
+    }
+
+    final payable = settingCtrl.displayPayableCommissionAmount.value;
+    if (payable > 0) {
+      amountController.text = payable.toStringAsFixed(2);
+    }
   }
 
   Future<void> submitPayment() async {
@@ -129,19 +146,13 @@ class InstallerCommissionPaymentController extends GetxController {
     }
   }
 
-  void _prefillPayableCommission() {
-    if (!Get.isRegistered<InstallerSettingController>()) return;
-    final payable = Get.find<InstallerSettingController>()
-        .displayPayableCommissionAmount
-        .value;
-    if (payable > 0) {
-      amountController.text = payable.toStringAsFixed(2);
-    }
-  }
-
   void _refreshDependentData() {
     if (Get.isRegistered<InstallerPaymentDetailsController>()) {
       Get.find<InstallerPaymentDetailsController>().refreshPayments();
+    }
+    // Refresh user profile (user/me) so the home screen shows updated data.
+    if (Get.isRegistered<InstallerSettingController>()) {
+      Get.find<InstallerSettingController>().refreshUserProfile();
     }
   }
 

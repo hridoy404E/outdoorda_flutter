@@ -8,6 +8,7 @@ import 'package:outdoorda_flutter/core/services/two_factor_api_service.dart';
 import 'package:outdoorda_flutter/core/services/user_profile_api_service.dart';
 import 'package:outdoorda_flutter/core/utils/constants/app_strings.dart';
 import 'package:outdoorda_flutter/core/utils/logging/logger.dart';
+import 'package:outdoorda_flutter/core/utils/helpers/app_helper.dart';
 import 'package:outdoorda_flutter/features/global_section/authentication/auth_api_services/auth_api_service.dart';
 import 'package:outdoorda_flutter/features/customer_section/settings/models/pet_model.dart';
 import 'package:outdoorda_flutter/features/customer_section/settings/services/customer_pet_api_service.dart';
@@ -289,10 +290,15 @@ class CustomerSettingController extends GetxController {
 
       if (image == null) return;
 
-      userPhotoPath.value = image.path;
-      AppLoggerHelper.info('Customer profile photo selected: ${image.path}');
+      EasyLoading.show(status: 'Processing photo...');
+      final compressedPath = await AppHelperFunctions.compressImageIfNeeded(image.path);
+      userPhotoPath.value = compressedPath;
+      EasyLoading.dismiss();
+
+      AppLoggerHelper.info('Customer profile photo selected: $compressedPath');
       EasyLoading.showInfo('Photo selected. Tap Update Profile.');
     } catch (error) {
+      EasyLoading.dismiss();
       AppLoggerHelper.error('Failed to select customer profile photo', error);
       EasyLoading.showError('Failed to change photo');
     }

@@ -15,6 +15,7 @@ class StorageService {
   static const String _lastSyncedFcmTokenKey = 'last_synced_fcm_token';
   static const String _lastSyncedFcmUserIdKey = 'last_synced_fcm_user_id';
   static const String _twoFactorEnabledKey = 'two_factor_enabled';
+  static const String _jobDraftKey = 'job_draft';
 
   static SharedPreferences? _preferences;
 
@@ -139,4 +140,19 @@ class StorageService {
 
   static String? get lastSyncedFcmUserId =>
       _preferences?.getString(_lastSyncedFcmUserIdKey);
+
+  // ── Job Draft ──────────────────────────────────────────────────────────
+
+  /// Save job draft JSON string to local storage.
+  static Future<void> saveJobDraft(String jsonString) async {
+    await _preferences?.setString(_jobDraftKey, jsonString);
+  }
+
+  /// Retrieve stored job draft JSON, or null if none exists.
+  static String? getJobDraft() => _preferences?.getString(_jobDraftKey);
+
+  /// Remove the stored job draft.
+  static Future<void> clearJobDraft() async {
+    await _preferences?.remove(_jobDraftKey);
+  }
 }

@@ -1,7 +1,7 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String baseUrl = 'http://187.124.228.249:9920';
+  static const String baseUrl = 'https://api.pdusainstall.com';
 
   static const String login = '$baseUrl/auth/login';
   static const String verifyToken = '$baseUrl/auth/verify-token';

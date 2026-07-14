@@ -19,12 +19,34 @@ class UserManagementController extends GetxController {
   /// Selected tab index (0 = Installer, 1 = Customer)
   final RxInt selectedTabIndex = 0.obs;
 
-  /// Loading state
+  /// Error state
+  final RxString loadUsersError = ''.obs;
+
+  /// Installer states
+  final RxBool isLoadingInstallers = false.obs;
+  final RxBool isLoadingMoreInstallers = false.obs;
+  final RxBool hasMoreInstallers = true.obs;
+  final RxInt totalInstallers = 0.obs;
+  int _installerOffset = 0;
+  String _lastSearchQueryInstaller = '';
+
+  /// Customer states
+  final RxBool isLoadingCustomers = false.obs;
+  final RxBool isLoadingMoreCustomers = false.obs;
+  final RxBool hasMoreCustomers = true.obs;
+  final RxInt totalCustomers = 0.obs;
+  int _customerOffset = 0;
+  String _lastSearchQueryCustomer = '';
+
+  /// Search controller and query
+  final TextEditingController searchController = TextEditingController();
+  final RxString searchQuery = ''.obs;
+
+  // Backwards compatibility legacy states
   final RxBool isLoading = false.obs;
   final RxBool isLoadingMore = false.obs;
   final RxBool hasMoreUsers = true.obs;
   final RxInt totalUsers = 0.obs;
-  final RxString loadUsersError = ''.obs;
 
   /// List of installer users
   final RxList<UserModel> installers = <UserModel>[].obs;
@@ -33,107 +55,179 @@ class UserManagementController extends GetxController {
   final RxList<UserModel> customers = <UserModel>[].obs;
 
   final ScrollController scrollController = ScrollController();
-  int _offset = 0;
 
   @override
   void onInit() {
     super.onInit();
     scrollController.addListener(_onScroll);
+    searchController.addListener(_onSearchTextChanged);
     loadUsers();
+
+    // Listen for search query changes and trigger search after debounce
+    debounce(searchQuery, (_) {
+      loadTabUsers(tabIndex: selectedTabIndex.value, isInitialLoad: true);
+    }, time: const Duration(milliseconds: 500));
+
     AppLoggerHelper.info('UserManagementController initialized');
+  }
+
+  void _onSearchTextChanged() {
+    searchQuery.value = searchController.text.trim();
   }
 
   @override
   void onClose() {
     scrollController.removeListener(_onScroll);
     scrollController.dispose();
+    searchController.removeListener(_onSearchTextChanged);
+    searchController.dispose();
     super.onClose();
   }
 
-  /// Load users (installers and customers)
+  /// Load users for the current tab
   Future<void> loadUsers() async {
-    installers.clear();
-    customers.clear();
-    _offset = 0;
-    totalUsers.value = 0;
-    hasMoreUsers.value = true;
-    loadUsersError.value = '';
-
-    await _fetchUsersPage(isInitialLoad: true);
+    await loadTabUsers(tabIndex: selectedTabIndex.value, isInitialLoad: true);
   }
 
   Future<void> loadMoreUsers() async {
-    if (isLoading.value || isLoadingMore.value || !hasMoreUsers.value) return;
-    await _fetchUsersPage(isInitialLoad: false);
+    final tabIndex = selectedTabIndex.value;
+    if (tabIndex == 0) {
+      if (isLoadingInstallers.value || isLoadingMoreInstallers.value || !hasMoreInstallers.value) return;
+    } else {
+      if (isLoadingCustomers.value || isLoadingMoreCustomers.value || !hasMoreCustomers.value) return;
+    }
+    await loadTabUsers(tabIndex: tabIndex, isInitialLoad: false);
   }
 
   Future<void> refreshUsers() async {
-    await loadUsers();
+    await loadTabUsers(tabIndex: selectedTabIndex.value, isInitialLoad: true);
   }
 
-  Future<void> _fetchUsersPage({required bool isInitialLoad}) async {
+  Future<void> loadTabUsers({required int tabIndex, required bool isInitialLoad}) async {
+    final role = tabIndex == 0 ? 'INSTALLER' : 'CUSTOMER';
     final authorization = _buildAuthorizationHeader();
     if (authorization == null) {
       loadUsersError.value = 'Authorization missing. Please log in again.';
-      hasMoreUsers.value = false;
+      if (tabIndex == 0) {
+        hasMoreInstallers.value = false;
+      } else {
+        hasMoreCustomers.value = false;
+      }
+      _updateLegacyStates();
       return;
     }
 
     try {
       if (isInitialLoad) {
-        isLoading.value = true;
+        if (tabIndex == 0) {
+          isLoadingInstallers.value = true;
+          _installerOffset = 0;
+          installers.clear();
+          hasMoreInstallers.value = true;
+        } else {
+          isLoadingCustomers.value = true;
+          _customerOffset = 0;
+          customers.clear();
+          hasMoreCustomers.value = true;
+        }
+        loadUsersError.value = '';
       } else {
-        isLoadingMore.value = true;
+        if (tabIndex == 0) {
+          isLoadingMoreInstallers.value = true;
+        } else {
+          isLoadingMoreCustomers.value = true;
+        }
       }
+      _updateLegacyStates();
+
+      final currentOffset = tabIndex == 0 ? _installerOffset : _customerOffset;
+      final currentSearch = searchQuery.value;
 
       final page = await _userManagementApiService.fetchUsers(
         authorization: authorization,
-        offset: _offset,
+        offset: currentOffset,
         limit: _pageSize,
+        role: role,
+        search: currentSearch,
       );
 
-      totalUsers.value = page.total;
-      _offset = page.offset + page.count;
+      if (tabIndex == 0) {
+        _lastSearchQueryInstaller = currentSearch;
+        totalInstallers.value = page.total;
+        _installerOffset = page.offset + page.count;
 
-      for (final user in page.results) {
-        if (user.userType != 'installer' && user.userType != 'customer') {
-          continue;
+        for (final user in page.results) {
+          if (user.userType == 'installer') {
+            final alreadyExists = installers.any((item) => item.id == user.id);
+            if (!alreadyExists) {
+              installers.add(user);
+            }
+          }
         }
-        final targetList = user.userType == 'installer'
-            ? installers
-            : customers;
-        final alreadyExists = targetList.any((item) => item.id == user.id);
-        if (!alreadyExists) {
-          targetList.add(user);
+        hasMoreInstallers.value = page.count > 0 && installers.length < page.total;
+      } else {
+        _lastSearchQueryCustomer = currentSearch;
+        totalCustomers.value = page.total;
+        _customerOffset = page.offset + page.count;
+
+        for (final user in page.results) {
+          if (user.userType == 'customer') {
+            final alreadyExists = customers.any((item) => item.id == user.id);
+            if (!alreadyExists) {
+              customers.add(user);
+            }
+          }
         }
+        hasMoreCustomers.value = page.count > 0 && customers.length < page.total;
       }
 
-      final loadedUserCount = installers.length + customers.length;
-      hasMoreUsers.value = page.count > 0 && loadedUserCount < page.total;
       loadUsersError.value = '';
-
       AppLoggerHelper.info(
-        'Users loaded page: offset=${page.offset}, count=${page.count}, '
-        'total=${page.total}, installers=${installers.length}, '
-        'customers=${customers.length}, hasMore=${hasMoreUsers.value}',
+        'Users loaded for tab $tabIndex: offset=${page.offset}, count=${page.count}, '
+        'total=${page.total}, currentCount=${tabIndex == 0 ? installers.length : customers.length}',
       );
     } catch (error) {
-      AppLoggerHelper.error('Failed to load users', error);
+      AppLoggerHelper.error('Failed to load users for tab $tabIndex', error);
       loadUsersError.value = 'Failed to load users';
     } finally {
       if (isInitialLoad) {
-        isLoading.value = false;
+        if (tabIndex == 0) {
+          isLoadingInstallers.value = false;
+        } else {
+          isLoadingCustomers.value = false;
+        }
       } else {
-        isLoadingMore.value = false;
+        if (tabIndex == 0) {
+          isLoadingMoreInstallers.value = false;
+        } else {
+          isLoadingMoreCustomers.value = false;
+        }
       }
+      _updateLegacyStates();
     }
+  }
+
+  void _updateLegacyStates() {
+    isLoading.value = selectedTabIndex.value == 0 ? isLoadingInstallers.value : isLoadingCustomers.value;
+    isLoadingMore.value = selectedTabIndex.value == 0 ? isLoadingMoreInstallers.value : isLoadingMoreCustomers.value;
+    hasMoreUsers.value = selectedTabIndex.value == 0 ? hasMoreInstallers.value : hasMoreCustomers.value;
+    totalUsers.value = selectedTabIndex.value == 0 ? totalInstallers.value : totalCustomers.value;
+  }
+
+  void clearSearch() {
+    searchController.clear();
+    searchQuery.value = '';
   }
 
   /// Switch between Installer and Customer tabs
   void selectTab(int index) {
     selectedTabIndex.value = index;
-    if (currentTabUsers.isEmpty && hasMoreUsers.value) {
-      loadMoreUsers();
+    _updateLegacyStates();
+    final currentList = index == 0 ? installers : customers;
+    final lastSearch = index == 0 ? _lastSearchQueryInstaller : _lastSearchQueryCustomer;
+
+    if (currentList.isEmpty || lastSearch != searchQuery.value) {
+      loadTabUsers(tabIndex: index, isInitialLoad: true);
     }
     AppLoggerHelper.debug(
       'Switched to tab: ${index == 0 ? 'Installer' : 'Customer'}',

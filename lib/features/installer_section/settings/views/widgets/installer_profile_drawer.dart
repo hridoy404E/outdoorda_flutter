@@ -163,30 +163,80 @@ class _ProfileStats extends StatelessWidget {
 
   final InstallerSettingController controller;
 
+  /// Local visibility toggle — `true` = values shown (default).
+  static final ValueNotifier<bool> _isBalanceVisible =
+      ValueNotifier<bool>(true);
+
   @override
   Widget build(BuildContext context) {
     final formatter = NumberFormat.currency(symbol: r'$', decimalDigits: 2);
 
     return Obx(
-      () => Row(
-        children: [
-          Expanded(
-            child: _StatBox(
-              label: 'Earnings',
-              value: formatter.format(controller.displayTotalEarnings.value),
-            ),
-          ),
-          SizedBox(width: 10.w),
-          Expanded(
-            child: _StatBox(
-              label: 'Commission',
-              value: formatter.format(
-                controller.displayPayableCommissionAmount.value,
+      () {
+        final earnings =
+            formatter.format(controller.displayTotalEarnings.value);
+        final commission = formatter.format(
+          controller.displayPayableCommissionAmount.value,
+        );
+
+        return Column(
+          children: [
+            // Toggle row
+            Align(
+              alignment: Alignment.centerRight,
+              child: ValueListenableBuilder<bool>(
+                valueListenable: _isBalanceVisible,
+                builder: (_, visible, __) => GestureDetector(
+                  onTap: () => _isBalanceVisible.value = !visible,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        visible ? 'Hide Balance' : 'Show Balance',
+                        style: figtreeTextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      SizedBox(width: 4.w),
+                      Icon(
+                        visible
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        size: 18.r,
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+            SizedBox(height: 8.h),
+            // Stat boxes
+            ValueListenableBuilder<bool>(
+              valueListenable: _isBalanceVisible,
+              builder: (_, visible, __) => Row(
+                children: [
+                  Expanded(
+                    child: _StatBox(
+                      label: 'Earnings',
+                      value: visible ? earnings : '••••',
+                    ),
+                  ),
+                  SizedBox(width: 10.w),
+                  Expanded(
+                    child: _StatBox(
+                      label: 'Commission',
+                      value: visible ? commission : '••••',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

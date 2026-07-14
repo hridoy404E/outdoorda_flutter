@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:outdoorda_flutter/core/common/styles/global_text_style.dart';
 import 'package:outdoorda_flutter/core/utils/constants/colors.dart';
@@ -20,6 +21,9 @@ class CustomTextField extends StatefulWidget {
     this.onChanged,
     this.enabled = true,
     this.prefixIconOnPressed,
+    this.maxLength,
+    this.inputFormatters,
+    this.showCounter = false,
   });
 
   final String? label;
@@ -34,6 +38,9 @@ class CustomTextField extends StatefulWidget {
   final Function(String)? onChanged;
   final bool enabled;
   final Function()? prefixIconOnPressed;
+  final int? maxLength;
+  final List<TextInputFormatter>? inputFormatters;
+  final bool showCounter;
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
@@ -78,12 +85,15 @@ class _CustomTextFieldState extends State<CustomTextField> {
           keyboardType: widget.keyboardType,
           onChanged: widget.onChanged,
           enabled: widget.enabled,
+          maxLength: widget.maxLength,
+          inputFormatters: widget.inputFormatters,
           style: interTextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: AppColors.neutral700,
           ),
           decoration: InputDecoration(
+            counterText: widget.showCounter ? null : '',
             hintText: widget.placeholder,
             hintStyle: interTextStyle(
               fontSize: 14,

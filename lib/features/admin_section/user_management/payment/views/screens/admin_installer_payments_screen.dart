@@ -414,6 +414,37 @@ class _PaymentCard extends StatelessWidget {
             final isMarking = controller.markingPaymentId.value == payment.id;
             final markingAction = controller.markingPaymentAction.value;
 
+            // If it is a Stripe payment, we only display the status without action buttons
+            if (payment.stripePaymentIntentId.trim().isNotEmpty) {
+              final label = (payment.isPending || payment.isFailed || payment.isRejected) 
+                  ? 'Not Received' 
+                  : 'Received';
+              return SizedBox(
+                width: double.infinity,
+                height: 42.h,
+                child: ElevatedButton(
+                  onPressed: null,
+                  style: ElevatedButton.styleFrom(
+                    disabledBackgroundColor: AppColors.cardBackground,
+                    disabledForegroundColor: AppColors.textSecondary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                  ),
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: figtreeTextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              );
+            }
+
             if (payment.isFailed) return const SizedBox.shrink();
 
             if (!payment.isPending) {

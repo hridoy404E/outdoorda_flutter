@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:outdoorda_flutter/core/common/styles/global_text_style.dart';
@@ -173,6 +174,11 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                         validator: AppValidator.validatePhoneNumber,
                         keyboardType: TextInputType.phone,
                         prefixIcon: Icons.phone_outlined,
+                        maxLength: 10,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        showCounter: true,
                       ),
                     ],
                   ),

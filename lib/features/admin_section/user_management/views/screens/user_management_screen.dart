@@ -39,23 +39,87 @@ class UserManagementScreen extends StatelessWidget {
                     Text(
                       'User Management',
                       style: figtreeTextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textDark,
                       ),
                     ),
-                    SizedBox(height: 6.h),
+                    SizedBox(height: 4.h),
                     Text(
                       'Manage your network of users',
                       style: figtreeTextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.w400,
                         color: AppColors.textDark,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 24.h),
+                SizedBox(height: 12.h),
+
+                /// Search Field
+                TextField(
+                  controller: controller.searchController,
+                  style: figtreeTextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.textDark,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Search by name or email...',
+                    hintStyle: figtreeTextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.neutral400,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: AppColors.neutral400,
+                      size: 20.r,
+                    ),
+                    suffixIcon: Obx(() {
+                      if (controller.searchQuery.value.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return GestureDetector(
+                        onTap: controller.clearSearch,
+                        child: Icon(
+                          Icons.clear,
+                          color: AppColors.neutral400,
+                          size: 20.r,
+                        ),
+                      );
+                    }),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 10.h,
+                      horizontal: 16.w,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                      borderSide: BorderSide(
+                        color: AppColors.skyDark,
+                        width: 1.w,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                      borderSide: BorderSide(
+                        color: AppColors.skyDark.withValues(alpha: 0.5),
+                        width: 1.w,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                      borderSide: BorderSide(
+                        color: AppColors.gradientStart,
+                        width: 1.w,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 12.h),
 
                 /// Tab Buttons (Installer / Customer)
                 Obx(() {
@@ -146,9 +210,19 @@ class UserManagementScreen extends StatelessWidget {
           Expanded(
             child: Obx(() {
               final users = controller.currentTabUsers;
+              final isInstaller = controller.selectedTabIndex.value == 0;
+              final isLoading = isInstaller
+                  ? controller.isLoadingInstallers.value
+                  : controller.isLoadingCustomers.value;
+              final isLoadingMore = isInstaller
+                  ? controller.isLoadingMoreInstallers.value
+                  : controller.isLoadingMoreCustomers.value;
+              final hasMore = isInstaller
+                  ? controller.hasMoreInstallers.value
+                  : controller.hasMoreCustomers.value;
 
-              if (controller.isLoading.value) {
-                return const UserManagementShimmer();
+              if (isLoading) {
+                return UserManagementShimmer(isInstaller: isInstaller);
               }
 
               if (users.isEmpty) {
@@ -176,15 +250,14 @@ class UserManagementScreen extends StatelessWidget {
                   );
                 }
 
-                if (controller.hasMoreUsers.value &&
-                    !controller.isLoadingMore.value) {
+                if (hasMore && !isLoadingMore) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     controller.loadMoreUsers();
                   });
                 }
 
-                if (controller.hasMoreUsers.value) {
-                  return const UserManagementShimmer();
+                if (hasMore) {
+                  return UserManagementShimmer(isInstaller: isInstaller);
                 }
 
                 return Center(
@@ -208,8 +281,7 @@ class UserManagementScreen extends StatelessWidget {
                     horizontal: 16.w,
                     vertical: 10.h,
                   ),
-                  itemCount:
-                      users.length + (controller.isLoadingMore.value ? 1 : 0),
+                  itemCount: users.length + (isLoadingMore ? 1 : 0),
                   separatorBuilder: (context, index) => SizedBox(height: 16.h),
                   itemBuilder: (context, index) {
                     if (index >= users.length) {

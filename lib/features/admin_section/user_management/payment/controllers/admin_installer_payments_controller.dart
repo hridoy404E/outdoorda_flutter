@@ -144,8 +144,8 @@ class AdminInstallerPaymentsController extends GetxController {
   Future<void> markPaymentRejected(AdminInstallerPayment payment) async {
     await _markPaymentAction(
       payment,
-      action: 'rejected',
-      fallbackStatus: 'rejected',
+      action: 'reject',
+      fallbackStatus: 'reject',
       loadingMessage: 'Marking payment not received...',
       successMessage: 'Payment marked as not received',
       failureMessage: 'Failed to mark payment not received',

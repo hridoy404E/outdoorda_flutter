@@ -9,6 +9,7 @@ import 'package:outdoorda_flutter/core/services/storage_service.dart';
 import 'package:outdoorda_flutter/core/services/two_factor_api_service.dart';
 import 'package:outdoorda_flutter/core/services/user_profile_api_service.dart';
 import 'package:outdoorda_flutter/core/utils/logging/logger.dart';
+import 'package:outdoorda_flutter/core/utils/helpers/app_helper.dart';
 import 'package:outdoorda_flutter/features/admin_section/settings/services/admin_job_management_settings_api_service.dart';
 import 'package:outdoorda_flutter/features/global_section/authentication/auth_api_services/auth_api_service.dart';
 import 'package:outdoorda_flutter/routes/app_routes.dart';
@@ -222,7 +223,6 @@ class AdminSettingsController extends GetxController {
     return '$prefix $token';
   }
 
-  /// Change profile photo
   Future<void> changeProfilePhoto() async {
     try {
       final ImagePicker picker = ImagePicker();
@@ -232,11 +232,16 @@ class AdminSettingsController extends GetxController {
       );
 
       if (image != null) {
-        profileImagePath.value = image.path;
+        EasyLoading.show(status: 'Processing photo...');
+        final compressedPath = await AppHelperFunctions.compressImageIfNeeded(image.path);
+        profileImagePath.value = compressedPath;
+        EasyLoading.dismiss();
+
         EasyLoading.showInfo('Photo selected. Tap Save Profile Changes.');
-        AppLoggerHelper.info('Admin profile photo selected: ${image.path}');
+        AppLoggerHelper.info('Admin profile photo selected: $compressedPath');
       }
     } catch (error) {
+      EasyLoading.dismiss();
       AppLoggerHelper.error('Change photo error: $error', error);
       EasyLoading.showError('Failed to change photo');
     }
