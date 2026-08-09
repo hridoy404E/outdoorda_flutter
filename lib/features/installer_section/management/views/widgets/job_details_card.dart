@@ -50,6 +50,30 @@ class JobDetailsCard extends StatelessWidget {
           ),
           SizedBox(height: 12.h),
 
+          // Customer Name section
+          Text(
+            'Customer Name:',
+            style: figtreeTextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w400, // Regular
+              color: const Color(0xFF2B4554), // #2b4554
+            ),
+          ),
+          SizedBox(height: 6.h),
+          Text(
+            job?.displayCustomerName ?? 'Customer',
+            style: figtreeTextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w600, // SemiBold
+              color: const Color(0xFF2B4554), // #2b4554
+            ),
+          ),
+          SizedBox(height: 16.h),
+
+          // Divider
+          Container(height: 1.h, color: const Color(0xFFC2CCD3)),
+          SizedBox(height: 16.h),
+
           // Location section
           Text(
             'Location:',

@@ -55,6 +55,7 @@ class CreateNewJobController extends GetxController {
   final petSizeController = TextEditingController();
   final RxList<ServiceAreaModel> serviceAreas = <ServiceAreaModel>[].obs;
   final Rxn<ServiceAreaModel> selectedServiceArea = Rxn<ServiceAreaModel>();
+  final Rxn<ServiceAreaModel> selectedStep4ServiceArea = Rxn<ServiceAreaModel>();
   final RxBool isServiceAreaLoading = false.obs;
 
   /// Form controllers for Step 2: Pet Door Selection
@@ -188,10 +189,6 @@ class CreateNewJobController extends GetxController {
       EasyLoading.showError('Please enter zip code');
       return false;
     }
-    if (selectedServiceArea.value == null) {
-      EasyLoading.showError(AppStrings.pleaseSelectServiceArea);
-      return false;
-    }
     if (petNameController.text.trim().isEmpty) {
       EasyLoading.showError('Please enter pet name');
       return false;
@@ -222,7 +219,18 @@ class CreateNewJobController extends GetxController {
 
   void selectServiceArea(ServiceAreaModel? area) {
     selectedServiceArea.value = area;
+    selectedStep4ServiceArea.value = area;
+    loadInstallersForServiceArea(area?.id);
     AppLoggerHelper.debug('Selected admin job service area: ${area?.name}');
+  }
+
+  void selectStep4ServiceArea(ServiceAreaModel? area) {
+    selectedStep4ServiceArea.value = area;
+    if (area != null) {
+      selectedServiceArea.value = area;
+    }
+    loadInstallersForServiceArea(area?.id);
+    AppLoggerHelper.debug('Selected step 4 service area: ${area?.name}');
   }
 
   /// Validate Step 3: Pricing & Site Photos
@@ -250,6 +258,22 @@ class CreateNewJobController extends GetxController {
     AppLoggerHelper.info(
       'Installer ${installers[index].name} selection: ${installers[index].isSelected}',
     );
+  }
+
+  /// Whether all loaded installers are selected
+  bool get isAllInstallersSelected {
+    if (installers.isEmpty) return false;
+    return installers.every((i) => i.isSelected);
+  }
+
+  /// Toggle selection of all installers
+  void toggleSelectAllInstallers() {
+    final newValue = !isAllInstallersSelected;
+    for (final installer in installers) {
+      installer.isSelected = newValue;
+    }
+    installers.refresh();
+    AppLoggerHelper.info('Toggled select all installers: $newValue');
   }
 
   /// Upload site photo
@@ -413,9 +437,11 @@ class CreateNewJobController extends GetxController {
           .map((e) => e.id)
           .toList();
 
+      final String custIdsString;
       if (selectedInstallerIds.isEmpty) {
-        EasyLoading.showError('Please select at least one installer');
-        return;
+        custIdsString = "all";
+      } else {
+        custIdsString = jsonEncode(selectedInstallerIds);
       }
 
       if (uploadedImages.isEmpty && uploadedFiles.isEmpty) {
@@ -426,7 +452,7 @@ class CreateNewJobController extends GetxController {
         EasyLoading.showError('Please select installation surface');
         return;
       }
-      final selectedArea = selectedServiceArea.value;
+      final selectedArea = selectedServiceArea.value ?? selectedStep4ServiceArea.value;
       if (selectedArea == null) {
         EasyLoading.showError(AppStrings.pleaseSelectServiceArea);
         return;
@@ -451,7 +477,7 @@ class CreateNewJobController extends GetxController {
         price: estimatedPriceController.text.trim(),
         serviceAreaId: selectedArea.id,
         petName: petNameController.text.trim(),
-        custIds: selectedInstallerIds.join(','),
+        custIds: custIdsString,
         custEmail: emailController.text.trim(),
         addressLine1: addressLine1Controller.text.trim(),
         addressLine2: addressLine2Controller.text.trim(),
@@ -655,9 +681,8 @@ class CreateNewJobController extends GetxController {
         );
         if (match != null) {
           selectedServiceArea.value = match;
-          AppLoggerHelper.debug(
-            'Draft service area re-selected: ${match.name}',
-          );
+          selectedStep4ServiceArea.value = match;
+          await loadInstallersForServiceArea(match.id);
         }
         _draftServiceAreaId = null;
       }
@@ -673,6 +698,10 @@ class CreateNewJobController extends GetxController {
   }
 
   Future<void> _loadInstallers() async {
+    await loadInstallersForServiceArea(selectedStep4ServiceArea.value?.id ?? selectedServiceArea.value?.id);
+  }
+
+  Future<void> loadInstallersForServiceArea(dynamic serviceAreaId) async {
     final authorization = _buildAuthorizationHeader();
     if (authorization == null) {
       EasyLoading.showError('Authorization missing. Please log in again.');
@@ -683,40 +712,54 @@ class CreateNewJobController extends GetxController {
       isInstallersLoading.value = true;
       installers.clear();
 
-      var offset = 0;
-      var keepLoading = true;
+      final apiInstallers =
+          await _adminServiceAreaApiService.fetchInstallersByServiceArea(
+        authorization: authorization,
+        serviceAreaId: serviceAreaId,
+      );
 
-      while (keepLoading) {
-        final page = await _userManagementApiService.fetchUsers(
-          authorization: authorization,
-          offset: offset,
-          limit: _installerPageSize,
-        );
-
-        final installerUsers = page.results
-            .where((u) => u.userType == 'installer')
-            .toList();
-
-        for (final user in installerUsers) {
-          final exists = installers.any((i) => i.id == user.id);
-          if (!exists) {
-            installers.add(
-              InstallerModel(
-                id: user.id,
-                name: user.name,
-                location: user.address,
-                isSelected: false,
-              ),
-            );
+      if (apiInstallers.isNotEmpty) {
+        for (final item in apiInstallers) {
+          final model = _parseInstallerJson(item);
+          if (!installers.any((i) => i.id == model.id)) {
+            installers.add(model);
           }
         }
+      } else {
+        // Fallback to fetchUsers if /admin/installers/ returns empty or fails
+        var offset = 0;
+        var keepLoading = true;
+        while (keepLoading) {
+          final page = await _userManagementApiService.fetchUsers(
+            authorization: authorization,
+            offset: offset,
+            limit: _installerPageSize,
+          );
 
-        offset = page.offset + page.count;
-        keepLoading = page.count > 0 && offset < page.total;
+          final installerUsers = page.results
+              .where((u) => u.userType == 'installer')
+              .toList();
+
+          for (final user in installerUsers) {
+            if (!installers.any((i) => i.id == user.id)) {
+              installers.add(
+                InstallerModel(
+                  id: user.id,
+                  name: user.name,
+                  location: user.address,
+                  isSelected: false,
+                ),
+              );
+            }
+          }
+
+          offset = page.offset + page.count;
+          keepLoading = page.count > 0 && offset < page.total;
+        }
       }
 
       AppLoggerHelper.info(
-        'Loaded installers for create job: ${installers.length}',
+        'Loaded installers for create job (serviceAreaId=$serviceAreaId): ${installers.length}',
       );
 
       // Re-select installers from draft if available.
@@ -727,9 +770,6 @@ class CreateNewJobController extends GetxController {
           }
         }
         installers.refresh();
-        AppLoggerHelper.debug(
-          'Draft installers re-selected: ${_draftInstallerIds.length}',
-        );
         _draftInstallerIds = [];
       }
     } catch (error) {
@@ -738,6 +778,70 @@ class CreateNewJobController extends GetxController {
     } finally {
       isInstallersLoading.value = false;
     }
+  }
+
+  InstallerModel _parseInstallerJson(Map<String, dynamic> item) {
+    final id = item['id']?.toString() ??
+        item['user_id']?.toString() ??
+        item['installer_id']?.toString() ??
+        item['inst_id']?.toString() ??
+        '';
+
+    String name = '';
+    if (item['name'] != null && item['name'].toString().trim().isNotEmpty) {
+      name = item['name'].toString().trim();
+    } else if (item['full_name'] != null && item['full_name'].toString().trim().isNotEmpty) {
+      name = item['full_name'].toString().trim();
+    } else if (item['user'] is Map<String, dynamic>) {
+      final u = item['user'] as Map<String, dynamic>;
+      name = u['name']?.toString() ?? u['full_name']?.toString() ?? '';
+    } else if (item['first_name'] != null) {
+      name = '${item['first_name']} ${item['last_name'] ?? ''}'.trim();
+    }
+    if (name.isEmpty) name = 'Installer ($id)';
+
+    String location = '';
+    if (item['phone'] != null && item['phone'].toString().trim().isNotEmpty) {
+      location = item['phone'].toString().trim();
+    } else if (item['phone_number'] != null &&
+        item['phone_number'].toString().trim().isNotEmpty) {
+      location = item['phone_number'].toString().trim();
+    } else if (item['cust_phone'] != null &&
+        item['cust_phone'].toString().trim().isNotEmpty) {
+      location = item['cust_phone'].toString().trim();
+    } else if (item['mobile'] != null &&
+        item['mobile'].toString().trim().isNotEmpty) {
+      location = item['mobile'].toString().trim();
+    } else if (item['user'] is Map<String, dynamic>) {
+      final u = item['user'] as Map<String, dynamic>;
+      location = u['phone']?.toString() ??
+          u['phone_number']?.toString() ??
+          u['email']?.toString() ??
+          '';
+    } else if (item['email'] != null &&
+        item['email'].toString().trim().isNotEmpty) {
+      location = item['email'].toString().trim();
+    } else if (item['location'] != null &&
+        item['location'].toString().trim().isNotEmpty) {
+      location = item['location'].toString().trim();
+    } else if (item['address'] != null &&
+        item['address'].toString().trim().isNotEmpty) {
+      location = item['address'].toString().trim();
+    } else if (item['city'] != null) {
+      location = '${item['city']}, ${item['state'] ?? ''}'.trim();
+    } else if (item['service_area'] is Map<String, dynamic>) {
+      location =
+          (item['service_area'] as Map<String, dynamic>)['name']?.toString() ??
+              '';
+    }
+    if (location.isEmpty) location = id.isNotEmpty ? 'ID: $id' : '';
+
+    return InstallerModel(
+      id: id,
+      name: name,
+      location: location,
+      isSelected: false,
+    );
   }
 
   String? _buildAuthorizationHeader() {

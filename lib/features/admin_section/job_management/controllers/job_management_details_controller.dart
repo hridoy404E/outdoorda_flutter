@@ -1,3 +1,7 @@
+// ignore_for_file: depend_on_referenced_packages
+
+import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:outdoorda_flutter/core/services/storage_service.dart';
@@ -5,6 +9,7 @@ import 'package:outdoorda_flutter/core/utils/constants/app_strings.dart';
 import 'package:outdoorda_flutter/core/utils/logging/logger.dart';
 import 'package:outdoorda_flutter/features/admin_section/job_management/models/admin_job.dart';
 import 'package:outdoorda_flutter/features/admin_section/job_management/controllers/job_management_controller.dart';
+import 'package:outdoorda_flutter/features/admin_section/job_management/services/admin_job_api_service.dart';
 import 'package:outdoorda_flutter/features/customer_section/home/service_request/models/customer_post_bid_model.dart';
 import 'package:outdoorda_flutter/features/customer_section/home/service_request/services/customer_post_bids_api_service.dart';
 import 'package:outdoorda_flutter/features/installer_section/management/models/management_job.dart';
@@ -14,6 +19,7 @@ import 'package:outdoorda_flutter/features/installer_section/management/models/m
 class JobManagementDetailsController extends GetxController {
   final CustomerPostBidsApiService _bidsApiService =
       CustomerPostBidsApiService();
+  final AdminJobApiService _adminJobApiService = AdminJobApiService();
 
   // Current job being viewed
   final Rxn<AdminJob> currentJob = Rxn<AdminJob>();
@@ -24,6 +30,12 @@ class JobManagementDetailsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _loadJobFromArguments();
+    _loadBidsIfNeeded();
+  }
+
+  /// Reload job data and bids from current arguments
+  void reloadJobData() {
     _loadJobFromArguments();
     _loadBidsIfNeeded();
   }
@@ -157,6 +169,105 @@ class JobManagementDetailsController extends GetxController {
       return false;
     } finally {
       acceptingBidId.value = '';
+    }
+  }
+
+  /// Delete current post with confirmation dialog
+  Future<void> deletePost() async {
+    final job = currentJob.value;
+    if (job == null) return;
+
+    final confirmed = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Delete Post'),
+        content: Text(
+          'Are you sure you want to delete post ${job.jobNumber}? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Get.back(result: true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
+
+    if (confirmed != true) return;
+
+    final authorization = _buildAuthorizationHeader();
+    if (authorization == null) {
+      EasyLoading.showError('Authorization missing. Please log in again.');
+      return;
+    }
+
+    try {
+      EasyLoading.show(status: 'Deleting post...');
+      await _adminJobApiService.deletePost(
+        authorization: authorization,
+        postId: job.id,
+      );
+
+      if (Get.isRegistered<JobManagementController>()) {
+        final jobController = Get.find<JobManagementController>();
+        jobController.removeJobById(job.id);
+      }
+
+      EasyLoading.dismiss();
+      EasyLoading.showSuccess('Post deleted successfully');
+      AppLoggerHelper.info('Admin post deleted: ${job.id}');
+      Get.back();
+    } catch (error) {
+      AppLoggerHelper.error('Failed to delete post ${job.id}', error);
+      EasyLoading.dismiss();
+      EasyLoading.showError('Failed to delete post');
+    }
+  }
+
+  /// Update current job with new fields
+  Future<bool> updateRecentJob({
+    Map<String, String>? fields,
+    List<http.MultipartFile>? files,
+  }) async {
+    final job = currentJob.value;
+    if (job == null) return false;
+
+    final authorization = _buildAuthorizationHeader();
+    if (authorization == null) {
+      EasyLoading.showError('Authorization missing. Please log in again.');
+      return false;
+    }
+
+    try {
+      EasyLoading.show(status: 'Updating job...');
+      await _adminJobApiService.updateRecentJob(
+        authorization: authorization,
+        postId: job.id,
+        fields: fields,
+        files: files,
+      );
+
+      if (Get.isRegistered<JobManagementController>()) {
+        final jobController = Get.find<JobManagementController>();
+        await jobController.refreshJobs();
+      }
+
+      EasyLoading.dismiss();
+      EasyLoading.showSuccess('Job updated successfully');
+      AppLoggerHelper.info('Admin job updated: ${job.id}');
+      return true;
+    } catch (error) {
+      AppLoggerHelper.error('Failed to update job ${job.id}', error);
+      EasyLoading.dismiss();
+      EasyLoading.showError(
+        'Failed to update job: ${error.toString().replaceAll('Exception: ', '')}',
+      );
+      return false;
     }
   }
 

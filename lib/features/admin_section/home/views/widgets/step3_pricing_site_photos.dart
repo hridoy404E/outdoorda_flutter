@@ -239,7 +239,7 @@ class Step3PricingSitePhotos extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8.r),
                     child: Center(
                       child: Text(
-                        AppStrings.nextPricing,
+                        AppStrings.nextAssign,
                         style: figtreeTextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,

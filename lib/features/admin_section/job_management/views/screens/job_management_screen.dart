@@ -206,9 +206,69 @@ class JobManagementScreen extends StatelessWidget {
                   final isLast = entry.key == controller.jobs.length - 1;
                   return Column(
                     children: [
-                      ManagementItemCard(
-                        job: job,
-                        onTap: () => controller.navigateToDetails(job),
+                      Dismissible(
+                        key: Key('job_swipe_${job.id}'),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          alignment: Alignment.centerRight,
+                          padding: EdgeInsets.only(right: 20.w),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE53935),
+                            borderRadius: BorderRadius.circular(24.r),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                'Delete',
+                                style: figtreeTextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              Icon(
+                                Icons.delete_outline,
+                                color: Colors.white,
+                                size: 24.r,
+                              ),
+                            ],
+                          ),
+                        ),
+                        confirmDismiss: (direction) async {
+                          final confirmed = await Get.dialog<bool>(
+                            AlertDialog(
+                              title: const Text('Delete Post'),
+                              content: Text(
+                                'Are you sure you want to delete post ${job.jobNumber}? This action cannot be undone.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Get.back(result: false),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Get.back(result: true),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.red,
+                                  ),
+                                  child: const Text('Delete'),
+                                ),
+                              ],
+                            ),
+                            barrierDismissible: false,
+                          );
+
+                          if (confirmed == true) {
+                            return await controller.deleteJobOnSwipe(job);
+                          }
+                          return false;
+                        },
+                        child: ManagementItemCard(
+                          job: job,
+                          onTap: () => controller.navigateToDetails(job),
+                        ),
                       ),
                       if (!isLast)
                         SizedBox(height: 16.h), // 16px gap between cards

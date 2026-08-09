@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:outdoorda_flutter/core/services/storage_service.dart';
 import 'package:outdoorda_flutter/core/utils/logging/logger.dart';
@@ -106,6 +107,68 @@ class JobManagementController extends GetxController {
       } else {
         isLoadingMore.value = false;
       }
+    }
+  }
+
+  /// Remove a job from local lists by ID
+  void removeJobById(String postId) {
+    allJobs.removeWhere((j) => j.id == postId);
+    jobs.removeWhere((j) => j.id == postId);
+  }
+
+  /// Delete a post with confirmation dialog
+  Future<void> deleteJob(ManagementJob job) async {
+    final confirmed = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Delete Post'),
+        content: Text(
+          'Are you sure you want to delete post ${job.jobNumber}? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Get.back(result: true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
+
+    if (confirmed != true) return;
+
+    await deleteJobOnSwipe(job);
+  }
+
+  /// Execute job deletion after swipe confirmation
+  Future<bool> deleteJobOnSwipe(ManagementJob job) async {
+    final authorization = _buildAuthorizationHeader();
+    if (authorization == null) {
+      EasyLoading.showError('Authorization missing. Please log in again.');
+      return false;
+    }
+
+    try {
+      EasyLoading.show(status: 'Deleting post...');
+      await _adminJobApiService.deletePost(
+        authorization: authorization,
+        postId: job.id,
+      );
+
+      removeJobById(job.id);
+      EasyLoading.dismiss();
+      EasyLoading.showSuccess('Post deleted successfully');
+      AppLoggerHelper.info('Admin post deleted on swipe: ${job.id}');
+      return true;
+    } catch (error) {
+      AppLoggerHelper.error('Failed to delete post ${job.id}', error);
+      EasyLoading.dismiss();
+      EasyLoading.showError('Failed to delete post');
+      return false;
     }
   }
 

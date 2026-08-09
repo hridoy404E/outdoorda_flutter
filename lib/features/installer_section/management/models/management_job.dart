@@ -72,12 +72,140 @@ class ManagementJob {
     this.customerSatisfiedNotes,
   });
 
+  String get displayCustomerName {
+    final cleaned = _cleanCustomerName(customerName);
+    if (cleaned != null) return cleaned;
+    final cleanedPet = _cleanCustomerName(petName);
+    if (cleanedPet != null) return cleanedPet;
+    return 'Customer';
+  }
+
+  static String _parseCustomerName(Map<String, dynamic> json) {
+    final nestedKeys = [
+      'cust_info',
+      'custInfo',
+      'customer_info',
+      'customerInfo',
+      'customer',
+      'Customer',
+      'user',
+      'User',
+      'user_info',
+      'userInfo',
+      'client',
+      'Client',
+      'owner',
+      'Owner',
+      'posted_by',
+      'postedBy',
+      'created_by',
+      'createdBy',
+    ];
+
+    final innerNameKeys = [
+      'cust_name',
+      'custName',
+      'customer_name',
+      'customerName',
+      'name',
+      'full_name',
+      'fullName',
+      'first_name',
+      'firstName',
+      'last_name',
+      'lastName',
+      'display_name',
+      'displayName',
+    ];
+
+    for (final nKey in nestedKeys) {
+      final obj = json[nKey];
+      if (obj is Map<String, dynamic>) {
+        final first = _cleanCustomerName(
+          obj['first_name']?.toString() ?? obj['firstName']?.toString(),
+        );
+        final last = _cleanCustomerName(
+          obj['last_name']?.toString() ?? obj['lastName']?.toString(),
+        );
+        if (first != null && last != null) {
+          final combined = '$first $last';
+          if (_cleanCustomerName(combined) != null) return combined;
+        }
+
+        for (final iKey in innerNameKeys) {
+          final val = _cleanCustomerName(obj[iKey]?.toString());
+          if (val != null) return val;
+        }
+      }
+    }
+
+    final topFirst = _cleanCustomerName(
+      json['first_name']?.toString() ?? json['firstName']?.toString(),
+    );
+    final topLast = _cleanCustomerName(
+      json['last_name']?.toString() ?? json['lastName']?.toString(),
+    );
+    if (topFirst != null && topLast != null) {
+      final combined = '$topFirst $topLast';
+      if (_cleanCustomerName(combined) != null) return combined;
+    }
+
+    final topKeys = [
+      'cust_name',
+      'custName',
+      'customer_name',
+      'customerName',
+      'client_name',
+      'clientName',
+      'user_name',
+      'userName',
+      'full_name',
+      'fullName',
+      'owner_name',
+      'ownerName',
+      'display_name',
+      'displayName',
+      'name',
+    ];
+
+    for (final key in topKeys) {
+      final val = _cleanCustomerName(json[key]?.toString());
+      if (val != null) return val;
+    }
+
+    final petName = _cleanCustomerName(
+      json['pet_name']?.toString() ?? json['petName']?.toString(),
+    );
+    if (petName != null) return petName;
+
+    return 'Customer';
+  }
+
+  static String? _cleanCustomerName(String? raw) {
+    if (raw == null) return null;
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty ||
+        trimmed == 'null' ||
+        trimmed == 'undefined' ||
+        trimmed == 'None') {
+      return null;
+    }
+    final lower = trimmed.toLowerCase();
+    if (lower.contains('admin') ||
+        lower.contains('administrator') ||
+        lower == 'system' ||
+        lower == 'customer') {
+      return null;
+    }
+    return trimmed;
+  }
+
   factory ManagementJob.fromJson(Map<String, dynamic> json) {
     return ManagementJob(
       id: json['id']?.toString() ?? '',
       isAssignedPost: json['is_assigned_post'] == true,
       jobNumber: json['job_number']?.toString() ?? '',
-      customerName: json['customer_name']?.toString() ?? '',
+      customerName: _parseCustomerName(json),
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       location: json['location']?.toString() ?? '',
       doorType: json['door_type']?.toString() ?? '',

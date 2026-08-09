@@ -95,6 +95,79 @@ class CreateServiceAreaController extends GetxController {
     }
   }
 
+  Future<void> updateServiceArea(ServiceAreaModel area, String newName) async {
+    final name = newName.trim();
+    if (name.isEmpty) {
+      EasyLoading.showError('Please enter service area name');
+      return;
+    }
+
+    final authorization = _buildAuthorizationHeader();
+    if (authorization == null) {
+      EasyLoading.showError(AppStrings.authorizationRequired);
+      return;
+    }
+
+    try {
+      EasyLoading.show(status: 'Updating service area...');
+      final response = await _adminServiceAreaApiService.updateServiceArea(
+        authorization: authorization,
+        id: area.id,
+        name: name,
+      );
+      EasyLoading.dismiss();
+
+      if (!response.isSuccess) {
+        EasyLoading.showError(
+          response.errorMessage.isNotEmpty
+              ? response.errorMessage
+              : 'Failed to update service area',
+        );
+        return;
+      }
+
+      EasyLoading.showSuccess('Service area updated successfully');
+      await loadServiceAreas();
+    } catch (error) {
+      EasyLoading.dismiss();
+      AppLoggerHelper.error('Failed to update service area', error);
+      EasyLoading.showError('Failed to update service area');
+    }
+  }
+
+  Future<void> deleteServiceArea(ServiceAreaModel area) async {
+    final authorization = _buildAuthorizationHeader();
+    if (authorization == null) {
+      EasyLoading.showError(AppStrings.authorizationRequired);
+      return;
+    }
+
+    try {
+      EasyLoading.show(status: 'Deleting service area...');
+      final response = await _adminServiceAreaApiService.deleteServiceArea(
+        authorization: authorization,
+        id: area.id,
+      );
+      EasyLoading.dismiss();
+
+      if (!response.isSuccess) {
+        EasyLoading.showError(
+          response.errorMessage.isNotEmpty
+              ? response.errorMessage
+              : 'Failed to delete service area',
+        );
+        return;
+      }
+
+      serviceAreas.removeWhere((item) => item.id == area.id);
+      EasyLoading.showSuccess('Service area deleted successfully');
+    } catch (error) {
+      EasyLoading.dismiss();
+      AppLoggerHelper.error('Failed to delete service area', error);
+      EasyLoading.showError('Failed to delete service area');
+    }
+  }
+
   String? _buildAuthorizationHeader() {
     final token = StorageService.accessToken;
     if (token == null || token.isEmpty) return null;

@@ -89,4 +89,28 @@ class AdminCreatePostApiService {
 
     return response;
   }
+
+  Future<ResponseData> deletePost({
+    required String authorization,
+    required String postId,
+  }) async {
+    final baseUrl = ApiEndpoints.adminPostsAdmin.endsWith('/')
+        ? ApiEndpoints.adminPostsAdmin
+        : '${ApiEndpoints.adminPostsAdmin}/';
+    final url = '$baseUrl$postId/';
+
+    final response = await _networkCaller.deleteRequest(
+      url,
+      token: authorization,
+      headers: {'accept': 'application/json'},
+    );
+
+    AppLoggerHelper.debug(
+      'AdminCreatePostApiService.deletePost: '
+      'status=${response.statusCode} success=${response.isSuccess} '
+      'postId=$postId body=${response.responseData}',
+    );
+
+    return response;
+  }
 }

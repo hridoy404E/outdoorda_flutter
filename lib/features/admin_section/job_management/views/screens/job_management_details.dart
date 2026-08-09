@@ -12,6 +12,7 @@ import 'package:outdoorda_flutter/features/customer_section/home/service_request
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/job_details_card_admin.dart';
 import '../widgets/job_tracking_view_admin.dart';
+import '../widgets/update_job_bottom_sheet.dart';
 
 class JobManagementDetailsScreen extends StatelessWidget {
   const JobManagementDetailsScreen({super.key});
@@ -50,7 +51,8 @@ class JobManagementDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<JobManagementDetailsController>();
+    final controller = Get.put(JobManagementDetailsController());
+    controller.reloadJobData();
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -192,6 +194,90 @@ class JobManagementDetailsScreen extends StatelessWidget {
             ),
           );
         }),
+      ),
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEBE8E3),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 10.r,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    final job = controller.currentJob.value;
+                    if (job != null) {
+                      Get.bottomSheet(
+                        UpdateJobBottomSheet(
+                          job: job,
+                          controller: controller,
+                        ),
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                      );
+                    }
+                  },
+                  icon: Icon(
+                    Icons.edit_outlined,
+                    size: 20.r,
+                    color: Colors.white,
+                  ),
+                  label: Text(
+                    'Update Job',
+                    style: figtreeTextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2B4554),
+                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => controller.deletePost(),
+                  icon: Icon(
+                    Icons.delete_outline,
+                    size: 20.r,
+                    color: Colors.white,
+                  ),
+                  label: Text(
+                    'Delete Post',
+                    style: figtreeTextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE53935),
+                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

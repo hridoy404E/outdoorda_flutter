@@ -39,6 +39,46 @@ class AdminServiceAreaApiService {
     );
   }
 
+  Future<List<Map<String, dynamic>>> fetchInstallersByServiceArea({
+    required String authorization,
+    dynamic serviceAreaId,
+  }) async {
+    final Map<String, dynamic> queryParams = {};
+    if (serviceAreaId != null) {
+      queryParams['service_area_id'] = serviceAreaId;
+    }
+
+    final response = await _networkCaller.getRequest(
+      ApiEndpoints.adminInstallers,
+      token: authorization,
+      headers: {'accept': 'application/json'},
+      queryParams: queryParams.isNotEmpty ? queryParams : null,
+    );
+
+    AppLoggerHelper.debug(
+      'AdminServiceAreaApiService.fetchInstallersByServiceArea: '
+      'status=${response.statusCode} success=${response.isSuccess} '
+      'serviceAreaId=$serviceAreaId body=${response.responseData}',
+    );
+
+    if (response.isSuccess && response.responseData != null) {
+      final data = response.responseData;
+      if (data is List) {
+        return data.whereType<Map<String, dynamic>>().toList();
+      } else if (data is Map<String, dynamic>) {
+        if (data['results'] is List) {
+          return (data['results'] as List).whereType<Map<String, dynamic>>().toList();
+        } else if (data['data'] is List) {
+          return (data['data'] as List).whereType<Map<String, dynamic>>().toList();
+        } else if (data['installers'] is List) {
+          return (data['installers'] as List).whereType<Map<String, dynamic>>().toList();
+        }
+      }
+    }
+
+    return [];
+  }
+
   Future<ResponseData> createServiceArea({
     required String authorization,
     required String name,
@@ -53,6 +93,49 @@ class AdminServiceAreaApiService {
 
     AppLoggerHelper.debug(
       'AdminServiceAreaApiService.createServiceArea: '
+      'status=${response.statusCode} success=${response.isSuccess} '
+      'body=${response.responseData}',
+    );
+
+    return response;
+  }
+
+  Future<ResponseData> updateServiceArea({
+    required String authorization,
+    required dynamic id,
+    required String name,
+  }) async {
+    final response = await _networkCaller.patchRequest(
+      '${ApiEndpoints.adminServiceAreas}/$id',
+      token: authorization,
+      headers: {
+        'accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: {'name': name},
+    );
+
+    AppLoggerHelper.debug(
+      'AdminServiceAreaApiService.updateServiceArea: '
+      'status=${response.statusCode} success=${response.isSuccess} '
+      'body=${response.responseData}',
+    );
+
+    return response;
+  }
+
+  Future<ResponseData> deleteServiceArea({
+    required String authorization,
+    required dynamic id,
+  }) async {
+    final response = await _networkCaller.deleteRequest(
+      '${ApiEndpoints.adminServiceAreas}/$id',
+      token: authorization,
+      headers: {'accept': 'application/json'},
+    );
+
+    AppLoggerHelper.debug(
+      'AdminServiceAreaApiService.deleteServiceArea: '
       'status=${response.statusCode} success=${response.isSuccess} '
       'body=${response.responseData}',
     );

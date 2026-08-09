@@ -15,7 +15,7 @@ import '../models/response_data.dart';
 import '../utils/logging/logger.dart';
 
 class NetworkCaller {
-  final int timeoutDuration = 10;
+  final int timeoutDuration = 120;
 
   static const String _jsonContentType = 'application/json';
   static const String _formContentType = 'application/x-www-form-urlencoded';
@@ -197,49 +197,56 @@ class NetworkCaller {
         token,
       ).timeout(Duration(seconds: timeoutDuration));
       final responseData = _handleResponse(response);
+      final requestUrl = response.request?.url.toString();
 
-      if (!canRefresh || !_shouldRefreshAccessToken(responseData, token)) {
+      final isUnauthorized =
+          responseData.statusCode == 401 || responseData.statusCode == 403;
+
+      if (isUnauthorized && _isAuthEndpoint(requestUrl)) {
         return responseData;
       }
 
-      final refreshed = await _refreshAccessToken();
-      if (!refreshed) {
-        return responseData;
+      if (isUnauthorized && canRefresh) {
+        final refreshed = await _refreshAccessToken();
+        if (refreshed) {
+          final refreshedAuthorization = _buildStoredAuthorizationHeader();
+          if (refreshedAuthorization != null) {
+            AppLoggerHelper.info(
+              'Retrying request with refreshed access token: ${response.request?.url}',
+            );
+            final retriedResponse = await request(
+              refreshedAuthorization,
+            ).timeout(Duration(seconds: timeoutDuration));
+            final retriedData = _handleResponse(retriedResponse);
+
+            if (retriedData.statusCode == 401 ||
+                retriedData.statusCode == 403) {
+              await _logoutUserDueToExpiredSession();
+            }
+            return retriedData;
+          }
+        }
       }
 
-      final refreshedAuthorization = _buildStoredAuthorizationHeader();
-      if (refreshedAuthorization == null) {
-        return responseData;
+      if (isUnauthorized) {
+        await _logoutUserDueToExpiredSession();
       }
 
-      AppLoggerHelper.info(
-        'Retrying request with refreshed access token: '
-        '${response.request?.url}',
-      );
-      final retriedResponse = await request(
-        refreshedAuthorization,
-      ).timeout(Duration(seconds: timeoutDuration));
-      return _handleResponse(retriedResponse);
+      return responseData;
     } catch (e) {
       return _handleError(e);
     }
   }
 
-  bool _shouldRefreshAccessToken(ResponseData responseData, String? token) {
-    if (token == null ||
-        token.trim().isEmpty ||
-        responseData.statusCode != 401) {
-      return false;
-    }
-
-    final errorText = _extractErrorMessage(
-      responseData.responseData,
-      fallback: responseData.errorMessage,
-    ).toLowerCase();
-
-    return errorText.contains('access token expired') ||
-        (errorText.contains('token expired') &&
-            errorText.contains('refresh token'));
+  bool _isAuthEndpoint(String? url) {
+    if (url == null || url.trim().isEmpty) return false;
+    final path = url.toLowerCase();
+    return path.contains('/auth/login') ||
+        path.contains('/auth/signup') ||
+        path.contains('/auth/send_otp') ||
+        path.contains('/auth/verify_otp') ||
+        path.contains('/auth/forgot_password') ||
+        path.contains('/auth/reset_password');
   }
 
   Future<bool> _refreshAccessToken() async {
@@ -331,7 +338,8 @@ class NetworkCaller {
   }
 
   String? _buildStoredAuthorizationHeader() {
-    final accessToken = StorageService.accessToken?.trim();
+    final accessToken =
+        (StorageService.accessToken ?? StorageService.token)?.trim();
     if (accessToken == null || accessToken.isEmpty) {
       return null;
     }
@@ -344,7 +352,7 @@ class NetworkCaller {
   }
 
   _RefreshedTokens _extractRefreshedTokens(Map decoded) {
-    final nestedTokens = decoded['new_tokens'];
+    final nestedTokens = decoded['new_tokens'] ?? decoded['data'] ?? decoded['tokens'];
     final tokenSource = nestedTokens is Map ? nestedTokens : decoded;
 
     String? readTokenValue(Map source, String key) {
@@ -352,9 +360,17 @@ class NetworkCaller {
       return value != null && value.isNotEmpty ? value : null;
     }
 
+    String? findToken(List<String> keys) {
+      for (final key in keys) {
+        final val = readTokenValue(tokenSource, key) ?? readTokenValue(decoded, key);
+        if (val != null) return val;
+      }
+      return null;
+    }
+
     return _RefreshedTokens(
-      accessToken: readTokenValue(tokenSource, 'access_token'),
-      refreshToken: readTokenValue(tokenSource, 'refresh_token'),
+      accessToken: findToken(['access_token', 'accessToken', 'token', 'access']),
+      refreshToken: findToken(['refresh_token', 'refreshToken', 'refresh']),
       tokenType:
           readTokenValue(tokenSource, 'token_type') ??
           readTokenValue(decoded, 'token_type'),

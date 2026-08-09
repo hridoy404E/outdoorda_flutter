@@ -33,6 +33,7 @@ class ApiEndpoints {
       '$baseUrl/admin/job-management-settings';
   static const String adminPaymentSettings = '$baseUrl/admin/payment-settings/';
   static const String adminServiceAreas = '$baseUrl/admin/service-areas';
+  static const String adminInstallers = '$baseUrl/admin/installers/';
   static const String adminPostsAdmin = '$baseUrl/admin/posts-admin/';
   static const String createServiceRequest = '$baseUrl/customer/posts/';
   static const String customerPosts = '$baseUrl/customer/posts/';

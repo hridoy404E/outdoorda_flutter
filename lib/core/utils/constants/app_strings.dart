@@ -383,7 +383,7 @@ class AppStrings {
   static const String petDoorSelection = 'Pet Door Selection';
   static const String doorModel = 'Door Model';
   static const String nextPricing = 'Next: Pricing';
-
+  static const String nextAssign = 'Next: Assign';
   static const String pricingAndSitePhotos = 'Pricing & Site Photos';
   static const String estimatedLaborPrice = 'Installer Price';
   static const String uploadPhotosOfInstallationSite =

@@ -153,7 +153,7 @@ class ManagementItemCard extends StatelessWidget {
                 // Customer name
                 Expanded(
                   child: Text(
-                    job.customerName,
+                    job.displayCustomerName,
                     style: figtreeTextStyle(
                       fontSize: 20.sp,
                       fontWeight: FontWeight.w600, // SemiBold

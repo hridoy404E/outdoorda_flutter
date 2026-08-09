@@ -1,3 +1,6 @@
+// ignore_for_file: depend_on_referenced_packages
+
+import 'package:http/http.dart' as http;
 import 'package:outdoorda_flutter/core/services/network_caller.dart';
 import 'package:outdoorda_flutter/core/utils/constants/api_endpoints.dart';
 import 'package:outdoorda_flutter/core/utils/logging/logger.dart';
@@ -108,13 +111,7 @@ class AdminJobApiService {
             json['job_no']?.toString(),
           ]) ??
           _buildShortJobNumber(id),
-      customerName:
-          _firstNotEmpty([
-            json['customer_name']?.toString(),
-            json['pet_name']?.toString(),
-            json['customer_id']?.toString(),
-          ]) ??
-          'Unknown Customer',
+      customerName: _extractCustomerName(json),
       price: price,
       location:
           _firstNotEmpty([
@@ -164,7 +161,83 @@ class AdminJobApiService {
     );
   }
 
-  String _extractErrorMessage(dynamic data) {
+  Future<void> deletePost({
+    required String authorization,
+    required String postId,
+  }) async {
+    final baseUrl = ApiEndpoints.adminPostsAdmin.endsWith('/')
+        ? ApiEndpoints.adminPostsAdmin
+        : '${ApiEndpoints.adminPostsAdmin}/';
+    final url = '$baseUrl$postId/';
+
+    final response = await _networkCaller.deleteRequest(
+      url,
+      token: authorization,
+      headers: {'accept': 'application/json'},
+    );
+
+    AppLoggerHelper.debug(
+      'AdminJobApiService.deletePost: '
+      'status=${response.statusCode} success=${response.isSuccess} '
+      'postId=$postId body=${response.responseData}',
+    );
+
+    if (response.isSuccess ||
+        (response.statusCode >= 200 && response.statusCode < 300)) {
+      return;
+    }
+
+    throw Exception(
+      _extractErrorMessage(
+        response.responseData,
+        fallback: 'Failed to delete post',
+      ),
+    );
+  }
+
+  Future<void> updateRecentJob({
+    required String authorization,
+    required String postId,
+    Map<String, String>? fields,
+    List<http.MultipartFile>? files,
+  }) async {
+    final baseUrl = ApiEndpoints.adminRecentJobs.endsWith('/')
+        ? ApiEndpoints.adminRecentJobs
+        : '${ApiEndpoints.adminRecentJobs}/';
+    final url = '$baseUrl$postId/';
+
+    final response = await _networkCaller.multipartRequest(
+      url,
+      method: 'PATCH',
+      token: authorization,
+      headers: {'accept': 'application/json'},
+      fields: fields,
+      files: files,
+    );
+
+    AppLoggerHelper.debug(
+      'AdminJobApiService.updateRecentJob: '
+      'status=${response.statusCode} success=${response.isSuccess} '
+      'postId=$postId body=${response.responseData}',
+    );
+
+    if (response.isSuccess ||
+        (response.statusCode >= 200 && response.statusCode < 300)) {
+      return;
+    }
+
+    throw Exception(
+      _extractErrorMessage(
+        response.responseData,
+        fallback: 'Failed to update job',
+      ),
+    );
+  }
+
+  String _extractErrorMessage(
+    dynamic data, {
+    String fallback = 'Failed to load jobs',
+  }) {
     if (data is Map<String, dynamic>) {
       final detail = data['detail']?.toString();
       final message = data['message']?.toString();
@@ -173,7 +246,7 @@ class AdminJobApiService {
         return source;
       }
     }
-    return 'Failed to load jobs';
+    return fallback;
   }
 
   DateTime? _parseDate(dynamic raw) {
@@ -267,5 +340,125 @@ class AdminJobApiService {
       if (country != null && country.trim().isNotEmpty) country,
     ];
     return parts.join(', ');
+  }
+
+  String _extractCustomerName(Map<String, dynamic> json) {
+    final nestedKeys = [
+      'cust_info',
+      'custInfo',
+      'customer_info',
+      'customerInfo',
+      'customer',
+      'Customer',
+      'user',
+      'User',
+      'user_info',
+      'userInfo',
+      'client',
+      'Client',
+      'owner',
+      'Owner',
+      'posted_by',
+      'postedBy',
+      'created_by',
+      'createdBy',
+    ];
+
+    final innerNameKeys = [
+      'cust_name',
+      'custName',
+      'customer_name',
+      'customerName',
+      'name',
+      'full_name',
+      'fullName',
+      'first_name',
+      'firstName',
+      'last_name',
+      'lastName',
+      'display_name',
+      'displayName',
+    ];
+
+    for (final nKey in nestedKeys) {
+      final obj = json[nKey];
+      if (obj is Map<String, dynamic>) {
+        final first = _cleanCustomerName(
+          obj['first_name']?.toString() ?? obj['firstName']?.toString(),
+        );
+        final last = _cleanCustomerName(
+          obj['last_name']?.toString() ?? obj['lastName']?.toString(),
+        );
+        if (first != null && last != null) {
+          final combined = '$first $last';
+          if (_cleanCustomerName(combined) != null) return combined;
+        }
+
+        for (final iKey in innerNameKeys) {
+          final val = _cleanCustomerName(obj[iKey]?.toString());
+          if (val != null) return val;
+        }
+      }
+    }
+
+    final topFirst = _cleanCustomerName(
+      json['first_name']?.toString() ?? json['firstName']?.toString(),
+    );
+    final topLast = _cleanCustomerName(
+      json['last_name']?.toString() ?? json['lastName']?.toString(),
+    );
+    if (topFirst != null && topLast != null) {
+      final combined = '$topFirst $topLast';
+      if (_cleanCustomerName(combined) != null) return combined;
+    }
+
+    final topKeys = [
+      'cust_name',
+      'custName',
+      'customer_name',
+      'customerName',
+      'client_name',
+      'clientName',
+      'user_name',
+      'userName',
+      'full_name',
+      'fullName',
+      'owner_name',
+      'ownerName',
+      'display_name',
+      'displayName',
+      'name',
+    ];
+
+    for (final key in topKeys) {
+      final val = _cleanCustomerName(json[key]?.toString());
+      if (val != null) return val;
+    }
+
+    final petName = _cleanCustomerName(
+      json['pet_name']?.toString() ?? json['petName']?.toString(),
+    );
+    if (petName != null) return petName;
+
+    return 'Customer';
+  }
+
+  static String? _cleanCustomerName(String? raw) {
+    if (raw == null) return null;
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty ||
+        trimmed == 'null' ||
+        trimmed == 'undefined' ||
+        trimmed == 'None') {
+      return null;
+    }
+    final lower = trimmed.toLowerCase();
+    if (lower.contains('admin') ||
+        lower.contains('administrator') ||
+        lower == 'system' ||
+        lower == 'customer') {
+      return null;
+    }
+    return trimmed;
   }
 }
